@@ -8,6 +8,7 @@ class SmilesGenerator:
         self.r_groups = re.findall("(R\d)", self.input_smiles)
 
         self.input_split = re.split("(R\d)", self.input_smiles)
+        self.input_split = [x for x in self.input_split if "R" not in x]
 
         
     def generate_substitutions_list(self, r_group_substitutions):
@@ -22,7 +23,7 @@ class SmilesGenerator:
             self.substitutions_list.append([])
 
         sub_index = 0
-        for R in R_groups:
+        for r in self.r_groups:
             first_index = 0
             for i in range(len(r_group_substitutions[r])):
                 for j in range(total_iterations//len(r_group_substitutions[r])):
@@ -37,6 +38,6 @@ class SmilesGenerator:
             for j in range(len(self.input_split)-1):
                 new_smiles += self.input_split[j]
                 new_smiles += self.substitutions_list[i][j]
-            new_smiles += split_test[-1]
+            new_smiles += self.input_split[-1]
             self.output.append([new_smiles])
 
