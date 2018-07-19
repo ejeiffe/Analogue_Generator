@@ -3,11 +3,11 @@ from datetime import datetime
 
 from smiles_generator import *
 
-functional_groups = {'H': '[H]', 'Me': 'CH3', 'Et': 'CH2CH3', 'n-Pr': 'CH2CH2CH3', 'i-Pr': 'C(CH3)CH3', 'n-Bu': 'CH2CH2CH2CH3', 'sec-Bu': 'CH(CH3)CH2CH3', 'i-Bu': 'CH2CH(CH3)CH3', 't-Bu': 'C(CH3)(CH3)CH3',
-                    'OH': 'OH', 'OMe': 'OCH3', 'OEt': 'OCH2CH3',
-                    'NH2': 'NH2', 'NHMe': 'N(H)CH3', 'N(Me)2': 'N(CH3)CH3',
+functional_groups = {'H': '[H]', 'Me': 'C', 'Et': 'CC', 'n-Pr': 'CCC', 'i-Pr': 'C(C)(C)', 'n-Bu': 'CCCC', 'sec-Bu': 'C(C)(CC)', 'i-Bu': 'CC(C)C', 't-Bu': 'C(C)(C)(C)',
+                    'OH': 'O', 'OMe': 'O(C)', 'OEt': 'O(CC)',
+                    'NH2': 'N', 'NHMe': 'N(C)', 'N(Me)2': 'N(C)C',
                     'F': 'F', 'Cl': 'Cl', 'Br': 'Br', 'I': 'I',
-                    'CF3': 'CF3', 'NO2': '[N+](=O)[O-]', 'CN': 'CN'}
+                    'CF3': 'C(F)(F)(F)', 'NO2': '[N+](=O)([O-])', 'CN': '[CN]'}
 
 def show_functional_groups():
     print("Available functional groups:")
