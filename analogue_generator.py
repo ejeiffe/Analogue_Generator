@@ -7,11 +7,14 @@ functional_groups = {'H': '[H]', 'Me': 'C', 'Et': 'CC', 'n-Pr': 'CCC', 'i-Pr': '
                     'OH': 'O', 'OMe': 'O(C)', 'OEt': 'O(CC)',
                     'NH2': 'N', 'NHMe': 'N(C)', 'N(Me)2': 'N(C)C',
                     'F': 'F', 'Cl': 'Cl', 'Br': 'Br', 'I': 'I',
-                    'CF3': 'C(F)(F)(F)', 'NO2': '[N+](=O)([O-])', 'CN': '[CN]'}
+                    'CF3': 'C(F)(F)(F)', 'NO2': '[N+](=O)([O-])', 'CN': '[CN]',
+                    'CHO': 'C(=O)', 'COMe': 'C(=O)(C)', 'COOH': 'C(=O)(O)', 'COOMe': 'C(=O)(OC)', 'COONH2': 'C(=O)(ON)', 'COONHMe': 'C(=O)(ONC)', 'COON(Me)2': 'C(=O)(ON(C)C)'}
 
 def show_functional_groups():
     print("Available functional groups:")
-    print(functional_groups.keys())
+    for group in functional_groups:
+        print('{0:}'.format(group), end=' ')
+        print('\n')
 
 def functional_groups_menu_first_selection():
     print("Select functional groups:\n")
@@ -21,6 +24,7 @@ def functional_groups_menu_first_selection():
     print("4. Amino")
     print("5. Halo")
     print("6. EWG")
+    print("7. Carbonyl")
     print("0. All")
     print("\n")
 
@@ -32,6 +36,7 @@ def functional_groups_menu_additional_selection():
     print("4. Amino")
     print("5. Halo")
     print("6. EWG")
+    print("7. Carbonyl")
     print("0. Cancel")
     print("\n")
 
@@ -52,7 +57,7 @@ def select_functional_groups():
     show_functional_groups()
     selection = []
     functional_groups_menu_first_selection()
-    fg_menu_choice = menu_select(7)
+    fg_menu_choice = menu_select(8)
     if fg_menu_choice == 0:
         for smiles in functional_groups.values():
             selection.append(smiles)
@@ -69,29 +74,33 @@ def select_functional_groups():
                 groups = ('NH2', 'NHMe', 'N(Me)2')
             elif fg_menu_choice == 5:
                 groups = ('F', 'Cl', 'Br', 'I')
-            else:
+            elif fg_menu_choice == 6:
                 groups = ('CF3', 'NO2', 'CN')
+            elif fg_menu_choice == 7:
+                groups = ('CHO', 'COMe', 'COOH', 'COOMe', 'COONH2', 'COONHMe', 'COON(Me)2')
             for smiles in [functional_groups[group] for group in groups]:
                 selection.append(smiles)
-            select_more = ""
-            while not (select_more.startswith('y') or select_more.startswith('n')): 
-                select_more = input("Select more functional groups? y/n:" ).lower()
-                if select_more.startswith('n'):    
-                    selecting = False
-                else:
-                    functional_groups_menu_additional_selection()
-                    fg_menu_choice = menu_select(7)
-                    if fg_menu_choice == 0:
+            valid = False
+            while not valid: 
+                select_more = input("Select more functional groups? y/n: ").lower()
+                if select_more[0] in ('y', 'n'):    
+                    valid = True
+                    if select_more[0] == 'n':
                         selecting = False
                     else:
-                        continue
+                        functional_groups_menu_additional_selection()
+                        fg_menu_choice = menu_select(8)
+                        if fg_menu_choice == 0:
+                            selecting = False
+                        else:
+                            continue
     return selection
 
 
 def get_r_group_substitutions(r_groups):
     r_group_substitutions = {}
     for r in r_groups:
-        print(f"Select substitutions for {r}:\n")
+        print(f"\nSelect substitutions for {r}:\n")
         r_group_substitutions[r] = select_functional_groups()
     return r_group_substitutions
 
@@ -111,9 +120,11 @@ if __name__ == "__main__":
         smiles_generator.generate_substitutions_list(get_r_group_substitutions(smiles_generator.r_groups))
         smiles_generator.generate_output_list()
         generate_csv_file(smiles_generator.output)
-        print("CSV file created.")
-        run_again = ""
-        while not (run_again.startswith('y') or run_again.startswith('n')): 
-            run_again = input("Generate analogues from another SMILES string? y/n:" ).lower()
-            if run_again.startswith('n'):    
-                running = False
+        print("CSV file created.\n")
+        valid = False
+        while not valid: 
+            run_again = input("Generate analogues from another SMILES string? y/n: ").lower()
+            if run_again[0] in ('y', 'n'):    
+                valid = True
+                if run_again[0] == 'n':
+                    running = False
