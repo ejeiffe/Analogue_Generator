@@ -10,10 +10,22 @@ functional_groups = {'H': '[H]', 'Me': 'C', 'Et': 'CC', 'n-Pr': 'CCC', 'i-Pr': '
                     'CF3': 'C(F)(F)(F)', 'NO2': '[N+](=O)([O-])', 'CN': '[CN]',
                     'CHO': 'C(=O)', 'COMe': 'C(=O)(C)', 'COOH': 'C(=O)(O)', 'COOMe': 'C(=O)(OC)', 'COONH2': 'C(=O)(ON)', 'COONHMe': 'C(=O)(ONC)', 'COON(Me)2': 'C(=O)(ON(C)C)'}
 
+selections_dict = {'Hydrogen' : ['H'],
+                    'Alkyl': ['Me', 'Et', 'n-Pr', 'i-Pr', 'n-Bu', 'sec-Bu', 'i-Bu', 't-Bu'],
+                    'Oxy': ['OH', 'OMe', 'OEt'],
+                    'Amino': ['NH2', 'NHMe', 'N(Me)2'],
+                    'Halo': ['F', 'Cl', 'Br', 'I'],
+                    'EWG': ['CF3', 'NO2', 'CN'],
+                    'Carbonyl': ['CHO', 'COMe', 'COOH', 'COOMe', 'COONH2', 'COONHMe', 'COON(Me)2']}
+
+selections_list = ['Hydrogen', 'Alkyl', 'Oxy', 'Amino', 'Halo', 'EWG', 'Carbonyl']
+
 def show_functional_groups():
-    print("Available functional groups:")
-    for group in functional_groups:
-        print('{0:}'.format(group), end=' ')
+    print("Available functional groups:\n")
+    for selection in selections_list:
+        print('{0:}:'.format(selection), end=' ')
+        for group in selections_dict[selection]:
+            print('{0:}'.format(group), end=' ')
         print('\n')
 
 def functional_groups_menu_first_selection():
@@ -54,7 +66,6 @@ def menu_select(len_menu):
     return selection
 
 def select_functional_groups():
-    show_functional_groups()
     selection = []
     functional_groups_menu_first_selection()
     fg_menu_choice = menu_select(8)
@@ -65,19 +76,19 @@ def select_functional_groups():
         selecting = True
         while selecting:
             if fg_menu_choice == 1:
-                groups = ('H')
+                groups = selections_dict['Hydrogen']
             elif fg_menu_choice == 2:
-                groups = ('Me', 'Et', 'n-Pr', 'i-Pr', 'n-Bu', 'sec-Bu', 'i-Bu', 't-Bu')
+                groups = selections_dict['Alkyl']
             elif fg_menu_choice == 3:
-                groups = ('OH', 'OMe', 'OEt')
+                groups = selections_dict['Oxy']
             elif fg_menu_choice == 4:
-                groups = ('NH2', 'NHMe', 'N(Me)2')
+                groups = selections_dict['Amino']
             elif fg_menu_choice == 5:
-                groups = ('F', 'Cl', 'Br', 'I')
+                groups = selections_dict['Halo']
             elif fg_menu_choice == 6:
-                groups = ('CF3', 'NO2', 'CN')
+                groups = selections_dict['EWG']
             elif fg_menu_choice == 7:
-                groups = ('CHO', 'COMe', 'COOH', 'COOMe', 'COONH2', 'COONHMe', 'COON(Me)2')
+                groups = selections_dict['Carbonyl']
             for smiles in [functional_groups[group] for group in groups]:
                 selection.append(smiles)
             valid = False
@@ -98,6 +109,7 @@ def select_functional_groups():
 
 
 def get_r_group_substitutions(r_groups):
+    show_functional_groups()
     r_group_substitutions = {}
     for r in r_groups:
         print(f"\nSelect substitutions for {r}:\n")

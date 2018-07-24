@@ -9,6 +9,7 @@ class SmilesGenerator:
 
         self.input_split = re.split("(R\d)", self.input_smiles)
         self.input_split = [x for x in self.input_split if "R" not in x]
+        #Replacing the [] around R groups in the original SMILES with a character that can be stripped out later
         self.input_split = [x[:-1] + 'Q' if x[-1] in ('[', ']') else x for x in self.input_split]
         self.input_split = ['Q' + x[1:] if x[0] == ']' else x for x in self.input_split]
         
@@ -20,6 +21,7 @@ class SmilesGenerator:
 
         self.substitutions_list = []
 
+        #Setting up list of empty lists, ready for items to be appended.
         for n in range(total_iterations):
             self.substitutions_list.append([])
 
