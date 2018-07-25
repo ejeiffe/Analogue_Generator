@@ -1,24 +1,24 @@
+import os.path
 import csv
+import pickle
 from datetime import datetime
 
+from initialise_functional_groups import *
 from smiles_generator import *
 
-functional_groups = {'H': '[H]', 'Me': 'C', 'Et': 'CC', 'n-Pr': 'CCC', 'i-Pr': 'C(C)(C)', 'n-Bu': 'CCCC', 'sec-Bu': 'C(C)(CC)', 'i-Bu': 'CC(C)C', 't-Bu': 'C(C)(C)(C)',
-                    'OH': 'O', 'OMe': 'O(C)', 'OEt': 'O(CC)',
-                    'NH2': 'N', 'NHMe': 'N(C)', 'N(Me)2': 'N(C)C',
-                    'F': 'F', 'Cl': 'Cl', 'Br': 'Br', 'I': 'I',
-                    'CF3': 'C(F)(F)(F)', 'NO2': '[N+](=O)([O-])', 'CN': '[CN]',
-                    'CHO': 'C(=O)', 'COMe': 'C(=O)(C)', 'COOH': 'C(=O)(O)', 'COOMe': 'C(=O)(OC)', 'COONH2': 'C(=O)(ON)', 'COONHMe': 'C(=O)(ONC)', 'COON(Me)2': 'C(=O)(ON(C)C)'}
+selections_list = ['Hydrogen', 'Alkyl', 'Oxy', 'Amino', 'Halo', 'EWG', 'Carbonyl', 'Custom']
 
-selections_dict = {'Hydrogen' : ['H'],
-                    'Alkyl': ['Me', 'Et', 'n-Pr', 'i-Pr', 'n-Bu', 'sec-Bu', 'i-Bu', 't-Bu'],
-                    'Oxy': ['OH', 'OMe', 'OEt'],
-                    'Amino': ['NH2', 'NHMe', 'N(Me)2'],
-                    'Halo': ['F', 'Cl', 'Br', 'I'],
-                    'EWG': ['CF3', 'NO2', 'CN'],
-                    'Carbonyl': ['CHO', 'COMe', 'COOH', 'COOMe', 'COONH2', 'COONHMe', 'COON(Me)2']}
+def load_dictionaries():
+    fg_in = open("fg_dict.pickle", "rb")
+    functional_groups = pickle.load(fg_in)
+    selections_in = open("selections_dict.pickle", "rb")
+    selections_dict = pickle.load(selections_in) 
 
-selections_list = ['Hydrogen', 'Alkyl', 'Oxy', 'Amino', 'Halo', 'EWG', 'Carbonyl']
+def main_menu():
+    print("Main Menu:\n")
+    print("1. Generate Analogues")
+    print("2. Add Custom Functional Group")
+    print("0. Exit")
 
 def show_functional_groups():
     print("Available functional groups:\n")
@@ -30,25 +30,19 @@ def show_functional_groups():
 
 def functional_groups_menu_first_selection():
     print("Select functional groups:\n")
-    print("1. Hydrogen")
-    print("2. Alkyl")
-    print("3. Oxy")
-    print("4. Amino")
-    print("5. Halo")
-    print("6. EWG")
-    print("7. Carbonyl")
+    menu_item = 1
+    for selection in selections_list:
+        print(str(menu_item)+': '+selection)
+        menu_item += 1
     print("0. All")
     print("\n")
 
 def functional_groups_menu_additional_selection():
     print("Select functional groups:\n")
-    print("1. Hydrogen")
-    print("2. Alkyl")
-    print("3. Oxy")
-    print("4. Amino")
-    print("5. Halo")
-    print("6. EWG")
-    print("7. Carbonyl")
+    menu_item = 1
+    for selection in selections_list:
+        print(str(menu_item)+': '+selection)
+        menu_item += 1
     print("0. Cancel")
     print("\n")
 
@@ -68,27 +62,14 @@ def menu_select(len_menu):
 def select_functional_groups():
     selection = []
     functional_groups_menu_first_selection()
-    fg_menu_choice = menu_select(8)
+    fg_menu_choice = menu_select(len(selections_list)+1)
     if fg_menu_choice == 0:
         for smiles in functional_groups.values():
             selection.append(smiles)
     else:
         selecting = True
         while selecting:
-            if fg_menu_choice == 1:
-                groups = selections_dict['Hydrogen']
-            elif fg_menu_choice == 2:
-                groups = selections_dict['Alkyl']
-            elif fg_menu_choice == 3:
-                groups = selections_dict['Oxy']
-            elif fg_menu_choice == 4:
-                groups = selections_dict['Amino']
-            elif fg_menu_choice == 5:
-                groups = selections_dict['Halo']
-            elif fg_menu_choice == 6:
-                groups = selections_dict['EWG']
-            elif fg_menu_choice == 7:
-                groups = selections_dict['Carbonyl']
+            groups = selections_dict[selections_list[fg_menu_choice-1]]
             for smiles in [functional_groups[group] for group in groups]:
                 selection.append(smiles)
             valid = False
@@ -100,7 +81,7 @@ def select_functional_groups():
                         selecting = False
                     else:
                         functional_groups_menu_additional_selection()
-                        fg_menu_choice = menu_select(8)
+                        fg_menu_choice = menu_select(len(selections_list)+1)
                         if fg_menu_choice == 0:
                             selecting = False
                         else:
@@ -123,20 +104,60 @@ def generate_csv_file(output):
         writer.writerows(output)
     csvfile.close()
 
+def generate_analogues():
+    input_smiles = input("Enter SMILES string: ")
+    smiles_generator = SmilesGenerator(input_smiles)
+    smiles_generator.generate_substitutions_list(get_r_group_substitutions(smiles_generator.r_groups))
+    smiles_generator.generate_output_list()
+    generate_csv_file(smiles_generator.output)
+    print("CSV file created.\n")
+
+def run_generator_again():
+    valid = False
+    while not valid: 
+        run_again = input("Generate analogues from another SMILES string? y/n: ").lower()
+        if run_again[0] in ('y', 'n'):    
+            valid = True
+    if run_again[0] == 'y':
+        return True
+    return False
+
+def add_custom_functional_group():
+    group_name = input("Enter name of functional group: ")
+    group_smiles = input("Enter SMILES string for functional group: ")
+    functional_groups[group_name] = group_smiles
+    selections_dict["Custom"].append(group_name)
+    save_dictionaries()
+
+def save_dictionaries():
+    fg_out = open("fg_dict.pickle","wb")
+    pickle.dump(functional_groups, fg_out)
+    fg_out.close()
+    selections_out = open("selections_dict.pickle", "wb")
+    pickle.dump(selections_dict, selections_out)
+    selections_out.close()
+
 if __name__ == "__main__":
     print("Welcome to the analogue generator!\n")
+    if os.path.exists("fg_dict.pickle"):
+        load_dictionaries()
+        print("Functional groups loaded")
+    else:
+        initialise_functional_groups()
+        print("Functional groups initialised")
     running = True
     while running:
-        input_smiles = input("Enter SMILES string: ")
-        smiles_generator = SmilesGenerator(input_smiles)
-        smiles_generator.generate_substitutions_list(get_r_group_substitutions(smiles_generator.r_groups))
-        smiles_generator.generate_output_list()
-        generate_csv_file(smiles_generator.output)
-        print("CSV file created.\n")
-        valid = False
-        while not valid: 
-            run_again = input("Generate analogues from another SMILES string? y/n: ").lower()
-            if run_again[0] in ('y', 'n'):    
-                valid = True
-                if run_again[0] == 'n':
-                    running = False
+        main_menu()
+        main_select = menu_select(3)
+        if main_select == 1:
+            generator = True
+            while run_again:
+                generate_analogues()
+                generator = run_generator_again()
+        elif main_select == 2:
+            add_custom_functional_group()
+        else:
+            running = False
+
+        
+        
