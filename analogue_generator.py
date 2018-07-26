@@ -3,25 +3,28 @@ import csv
 import pickle
 from datetime import datetime
 
-from initialise_functional_groups import *
 from smiles_generator import *
 
 selections_list = ['Hydrogen', 'Alkyl', 'Oxy', 'Amino', 'Halo', 'EWG', 'Carbonyl', 'Custom']
 
 def load_dictionaries():
+    global functional_groups
+    global selections_dict
     fg_in = open("fg_dict.pickle", "rb")
     functional_groups = pickle.load(fg_in)
+    fg_in.close()
     selections_in = open("selections_dict.pickle", "rb")
-    selections_dict = pickle.load(selections_in) 
+    selections_dict = pickle.load(selections_in)
+    selections_in.close()
 
 def main_menu():
-    print("Main Menu:\n")
+    print("\nMain Menu:\n")
     print("1. Generate Analogues")
     print("2. Add Custom Functional Group")
-    print("0. Exit")
+    print("0. Exit\n")
 
 def show_functional_groups():
-    print("Available functional groups:\n")
+    print("\nAvailable functional groups:\n")
     for selection in selections_list:
         print('{0:}:'.format(selection), end=' ')
         for group in selections_dict[selection]:
@@ -92,7 +95,7 @@ def select_functional_groups():
 def get_r_group_substitutions(r_groups):
     show_functional_groups()
     r_group_substitutions = {}
-    for r in r_groups:
+    for r in sorted(r_groups):
         print(f"\nSelect substitutions for {r}:\n")
         r_group_substitutions[r] = select_functional_groups()
     return r_group_substitutions
@@ -105,8 +108,14 @@ def generate_csv_file(output):
     csvfile.close()
 
 def generate_analogues():
-    input_smiles = input("Enter SMILES string: ")
-    smiles_generator = SmilesGenerator(input_smiles)
+    valid = False
+    while not valid:
+        input_smiles = input("Enter SMILES string: ")
+        try:
+            smiles_generator = SmilesGenerator(input_smiles)
+            valid = True
+        except:
+            print("Please enter a valid SMILES string, with R groups enclosed in square brackets.")
     smiles_generator.generate_substitutions_list(get_r_group_substitutions(smiles_generator.r_groups))
     smiles_generator.generate_output_list()
     generate_csv_file(smiles_generator.output)
@@ -143,7 +152,7 @@ if __name__ == "__main__":
         load_dictionaries()
         print("Functional groups loaded")
     else:
-        initialise_functional_groups()
+        from initialise_functional_groups import *
         print("Functional groups initialised")
     running = True
     while running:
@@ -151,7 +160,7 @@ if __name__ == "__main__":
         main_select = menu_select(3)
         if main_select == 1:
             generator = True
-            while run_again:
+            while generator:
                 generate_analogues()
                 generator = run_generator_again()
         elif main_select == 2:
