@@ -1,21 +1,32 @@
 import os.path
 import csv
+import collections
 import pickle
 from datetime import datetime
 
 from smiles_generator import *
 
-selections_list = ['Hydrogen', 'Alkyl', 'Oxy', 'Amino', 'Halo', 'EWG', 'Carbonyl', 'Custom']
-
-def load_dictionaries():
+def load_functional_groups():
     global functional_groups
-    global selections_dict
     fg_in = open("fg_dict.pickle", "rb")
     functional_groups = pickle.load(fg_in)
     fg_in.close()
-    selections_in = open("selections_dict.pickle", "rb")
-    selections_dict = pickle.load(selections_in)
-    selections_in.close()
+
+def load_functional_group_sets():  
+    global fg_sets_dict
+    fg_sets_in = open("fg_sets_dict.pickle", "rb")
+    fg_sets_dict = pickle.load(fg_sets_in)
+    fg_sets_in.close()
+
+def save_functional_groups():
+    fg_out = open("fg_dict.pickle","wb")
+    pickle.dump(functional_groups, fg_out)
+    fg_out.close()
+
+def save_functional_group_sets():
+    fg_sets_out = open("fg_sets_dict.pickle", "wb")
+    pickle.dump(fg_sets_dict, fg_sets_out)
+    fg_sets_out.close()
 
 def main_menu():
     print("\nMain Menu:\n")
@@ -25,17 +36,17 @@ def main_menu():
 
 def show_functional_groups():
     print("\nAvailable functional groups:\n")
-    for selection in selections_list:
-        print('{0:}:'.format(selection), end=' ')
-        for group in selections_dict[selection]:
+    for fg_set in fg_sets_dict:
+        print('{0:}:'.format(fg_set), end=' ')
+        for group in fg_sets_dict[fg_set]:
             print('{0:}'.format(group), end=' ')
         print('\n')
 
 def functional_groups_menu_first_selection():
     print("Select functional groups:\n")
     menu_item = 1
-    for selection in selections_list:
-        print(str(menu_item)+': '+selection)
+    for fg_set in fg_sets_dict:
+        print(str(menu_item)+': '+fg_set)
         menu_item += 1
     print("0. All")
     print("\n")
@@ -43,8 +54,8 @@ def functional_groups_menu_first_selection():
 def functional_groups_menu_additional_selection():
     print("Select functional groups:\n")
     menu_item = 1
-    for selection in selections_list:
-        print(str(menu_item)+': '+selection)
+    for fg_set in fg_sets_dict:
+        print(str(menu_item)+': '+fg_set)
         menu_item += 1
     print("0. Cancel")
     print("\n")
@@ -65,14 +76,15 @@ def menu_select(len_menu):
 def select_functional_groups():
     selection = []
     functional_groups_menu_first_selection()
-    fg_menu_choice = menu_select(len(selections_list)+1)
+    fg_menu_choice = menu_select(len(fg_sets_dict)+1)
     if fg_menu_choice == 0:
         for smiles in functional_groups.values():
             selection.append(smiles)
     else:
         selecting = True
         while selecting:
-            groups = selections_dict[selections_list[fg_menu_choice-1]]
+            fg_set = list(fg_sets_dict.keys())[fg_menu_choice-1]
+            groups = fg_sets_dict[fg_set]
             for smiles in [functional_groups[group] for group in groups]:
                 selection.append(smiles)
             valid = False
@@ -80,18 +92,28 @@ def select_functional_groups():
                 select_more = input("Select more functional groups? y/n: ").lower()
                 if select_more[0] in ('y', 'n'):    
                     valid = True
-                    if select_more[0] == 'n':
-                        selecting = False
-                    else:
-                        functional_groups_menu_additional_selection()
-                        fg_menu_choice = menu_select(len(selections_list)+1)
-                        if fg_menu_choice == 0:
-                            selecting = False
-                        else:
-                            continue
+            if select_more[0] == 'n':
+                save_selection_as_set(selection)
+                selecting = False
+            else:
+                functional_groups_menu_additional_selection()
+                fg_menu_choice = menu_select(len(fg_sets_dict)+1)
+                if fg_menu_choice == 0:
+                    selecting = False
+                else:
+                    continue
     return selection
 
-
+def save_selection_as_set(selection):
+    valid = False
+    while not valid: 
+        save_selection = input("Save selection? y/n: ").lower()
+        if save_selection[0] in ('y', 'n'):    
+            valid = True
+    if save_selection[0] == 'y':
+        fg_set = input("Enter name for functional group set: ")
+        fg_sets_dict[fg_set] = selection
+                   
 def get_r_group_substitutions(r_groups):
     show_functional_groups()
     r_group_substitutions = {}
@@ -135,25 +157,40 @@ def add_custom_functional_group():
     group_name = input("Enter name of functional group: ")
     group_smiles = input("Enter SMILES string for functional group: ")
     functional_groups[group_name] = group_smiles
-    selections_dict["Custom"].append(group_name)
-    save_dictionaries()
+    save_functional_groups()
+    fg_set = add_functional_group_to_set()
+    fg_sets_dict[fg_set].append(group_name)
+    save_functional_group_sets()
 
-def save_dictionaries():
-    fg_out = open("fg_dict.pickle","wb")
-    pickle.dump(functional_groups, fg_out)
-    fg_out.close()
-    selections_out = open("selections_dict.pickle", "wb")
-    pickle.dump(selections_dict, selections_out)
-    selections_out.close()
+def add_to_set_menu():
+    print("\nAdd functional group to set: ")
+    menu_item = 1
+    for fg_set in fg_sets_dict:
+        print(str(menu_item)+': '+fg_set)
+        menu_item += 1
+    print("0. Create New Set\n")
+
+def add_functional_group_to_set():
+    add_to_set_menu()
+    add_set_menu_choice = menu_select(len(fg_sets_dict)+1)
+    if add_set_menu_choice == 0:
+        fg_set = input("Enter name for new functional group set: ")
+        fg_sets_dict[fg_set] = []
+    else:
+        fg_set = list(fg_sets_dict.keys())[add_set_menu_choice-1]
+    return fg_set
+
 
 if __name__ == "__main__":
     print("Welcome to the analogue generator!\n")
     if os.path.exists("fg_dict.pickle"):
-        load_dictionaries()
-        print("Functional groups loaded")
+        load_functional_groups()
     else:
-        from initialise_functional_groups import *
-        print("Functional groups initialised")
+        from initialise_dictionaries import functional_groups
+    if os.path.exists("fg_sets_dict.pickle"):
+        load_selections()
+    else:
+        from initialise_dictionaries import fg_sets_dict
     running = True
     while running:
         main_menu()
