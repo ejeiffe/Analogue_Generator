@@ -48,6 +48,7 @@ def functional_groups_menu_first_selection():
     for fg_set in fg_sets_dict:
         print(str(menu_item)+': '+fg_set)
         menu_item += 1
+    print(str(menu_item)+": Select single functional group")
     print("0. All")
     print("\n")
 
@@ -57,6 +58,7 @@ def functional_groups_menu_additional_selection():
     for fg_set in fg_sets_dict:
         print(str(menu_item)+': '+fg_set)
         menu_item += 1
+    print(str(menu_item)+": Select single functional group")
     print("0. Cancel")
     print("\n")
 
@@ -74,37 +76,58 @@ def menu_select(len_menu):
     return selection
 
 def select_functional_groups():
+    groups = []
     selection = []
     functional_groups_menu_first_selection()
-    fg_menu_choice = menu_select(len(fg_sets_dict)+1)
+    fg_menu_choice = menu_select(len(fg_sets_dict)+2)
     if fg_menu_choice == 0:
         for smiles in functional_groups.values():
             selection.append(smiles)
     else:
         selecting = True
         while selecting:
-            fg_set = list(fg_sets_dict.keys())[fg_menu_choice-1]
-            groups = fg_sets_dict[fg_set]
-            for smiles in [functional_groups[group] for group in groups]:
-                selection.append(smiles)
+            if fg_menu_choice == (len(fg_sets_dict) + 1):
+                new_groups = select_individual_groups()
+            else:
+                fg_set = list(fg_sets_dict.keys())[fg_menu_choice-1]
+                new_groups = fg_sets_dict[fg_set]
+            for group in new_groups:
+                groups.append(group)
             valid = False
             while not valid: 
                 select_more = input("Select more functional groups? y/n: ").lower()
                 if select_more[0] in ('y', 'n'):    
                     valid = True
             if select_more[0] == 'n':
-                save_selection_as_set(selection)
+                save_selection_as_set(groups)
                 selecting = False
             else:
                 functional_groups_menu_additional_selection()
-                fg_menu_choice = menu_select(len(fg_sets_dict)+1)
+                fg_menu_choice = menu_select(len(fg_sets_dict)+2)
                 if fg_menu_choice == 0:
                     selecting = False
                 else:
                     continue
+    selection = [functional_groups[group] for group in groups]
+      
     return selection
 
-def save_selection_as_set(selection):
+def select_individual_groups():
+    show_functional_groups()
+    groups = []
+    selecting = True
+    print("Enter name of functional group or press enter to stop selecting")
+    while selecting:
+        group = input("Select functional group: ")
+        if group in functional_groups.keys():
+            groups.append(group)
+        elif group == '':
+            selecting = False
+        else:
+            print("Please choose a functional group from the available list\n")
+    return groups
+
+def save_selection_as_set(groups):
     valid = False
     while not valid: 
         save_selection = input("Save selection? y/n: ").lower()
@@ -112,7 +135,12 @@ def save_selection_as_set(selection):
             valid = True
     if save_selection[0] == 'y':
         fg_set = input("Enter name for functional group set: ")
-        fg_sets_dict[fg_set] = selection
+        fg_sets_dict[fg_set] = groups
+        save_functional_group_sets()
+        print(f"Selection saved as {fg_set}.")
+    else:
+        print("Selection not saved.\n")
+
                    
 def get_r_group_substitutions(r_groups):
     show_functional_groups()
@@ -188,7 +216,7 @@ if __name__ == "__main__":
     else:
         from initialise_dictionaries import functional_groups
     if os.path.exists("fg_sets_dict.pickle"):
-        load_selections()
+        load_functional_group_sets()
     else:
         from initialise_dictionaries import fg_sets_dict
     running = True
