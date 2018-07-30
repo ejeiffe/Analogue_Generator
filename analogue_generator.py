@@ -75,7 +75,7 @@ def menu_select(len_menu):
             print(f"Enter a number between 0 and {str(len_menu-1)}")
     return selection
 
-def select_functional_groups():
+def select_functional_groups(first):
     groups = []
     selection = []
     functional_groups_menu_first_selection()
@@ -108,7 +108,10 @@ def select_functional_groups():
                     selecting = False
                 else:
                     continue
-    selection = [functional_groups[group] for group in groups]
+    if first:
+        selection = [functional_groups[group][1] if len(functional_groups[group]) == 2 else functional_groups[group][0] for group in groups]
+    else:
+        selection = [functional_groups[group][0] for group in groups]
       
     return selection
 
@@ -146,8 +149,12 @@ def get_r_group_substitutions(r_groups):
     show_functional_groups()
     r_group_substitutions = {}
     for r in sorted(r_groups):
+        if r == r_groups[0]:
+            first = True
+        else:
+            first = False
         print(f"\nSelect substitutions for {r}:\n")
-        r_group_substitutions[r] = select_functional_groups()
+        r_group_substitutions[r] = select_functional_groups(first)
     return r_group_substitutions
 
 def generate_csv_file(output):
@@ -183,8 +190,20 @@ def run_generator_again():
 
 def add_custom_functional_group():
     group_name = input("Enter name of functional group: ")
-    group_smiles = input("Enter SMILES string for functional group: ")
-    functional_groups[group_name] = group_smiles
+    print("""\nNote that two SMILES strings should be entered for ring structures to ensure correct connectivity.\n 
+        The first SMILES string will be used when the corresponding R group is at the beginning of the string, the second when the R group is in the middle (on a branch) or at the end.\n""")
+    valid = False
+    while not valid: 
+        two_smiles = input("Enter two SMILES strings? y/n: ").lower()
+        if two_smiles[0] in ('y', 'n'):    
+            valid = True
+    if two_smiles[0] == 'y':
+        group_smiles_first = input("Enter SMILES string for functional group (beginning of string): ")
+        group_smiles_else = input("Enter SMILES string for functional group (middle/end of string): ")
+        functional_groups[group_name] = (group_smiles_else, group_smiles_first)
+    else:
+        group_smiles = input("Enter SMILES string for functional group: ")
+        functional_groups[group_name] = (group_smiles,)
     save_functional_groups()
     fg_set = add_functional_group_to_set()
     fg_sets_dict[fg_set].append(group_name)
@@ -210,7 +229,7 @@ def add_functional_group_to_set():
 
 
 if __name__ == "__main__":
-    print("Welcome to the analogue generator!\n")
+    print("\nWelcome to the analogue generator!")
     if os.path.exists("fg_dict.pickle"):
         load_functional_groups()
     else:

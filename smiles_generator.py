@@ -20,23 +20,29 @@ class SmilesGenerator:
         for r in self.r_groups:
             total_iterations *= len(r_group_substitutions[r])
 
+        iterations = total_iterations
+           
         self.substitutions_list = []
 
         #Setting up list of empty lists, ready for items to be appended.
         for n in range(total_iterations):
             self.substitutions_list.append([])
 
+        # Generates all possible combinations of R groups
         sub_index = 0
         for r in self.r_groups:
             first_index = 0
-            for i in range(total_iterations//len(r_group_substitutions[r])):
+            for i in range(total_iterations//iterations):
                 for j in range(len(r_group_substitutions[r])):
-                    self.substitutions_list[first_index].append(r_group_substitutions[r][j])
-                    first_index += 1
+                    for k in range(iterations//len(r_group_substitutions[r])):
+                        self.substitutions_list[first_index].append(r_group_substitutions[r][j])
+                        first_index += 1
             sub_index += 1
+            iterations //= len(r_group_substitutions[r])
 
     def generate_output_list(self):
         self.output = []
+        # Splices together R groups from the substitution lists with the remaining SMILES fragments from the input string
         for i in range(len(self.substitutions_list)):
             new_smiles = ''
             for j in range(len(self.input_split)-1):
