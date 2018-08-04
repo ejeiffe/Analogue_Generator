@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 from smiles_generator import *
+from select_substituents_dialog import *
 
 class AGTabs(QWidget):
 
@@ -66,3 +67,10 @@ class AGTabs(QWidget):
             self.r_groups_layout.addWidget(QLabel(r_group),row,0)
             self.r_groups_layout.addWidget(self.r_group_select_buttons[r_group],row,2)
             row += 1
+        for r_group in self.r_group_select_buttons:
+            self.r_group_select_buttons[r_group].clicked.connect(lambda: self.open_selection_dialog(r_group))
+
+    def open_selection_dialog(self, r_group):
+        select_subs_dialog = SelectSubsDialog(r_group, self.fg_sets_dict)
+        select_subs_dialog.exec_()
+
