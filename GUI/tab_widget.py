@@ -60,17 +60,25 @@ class AGTabs(QWidget):
 
     def get_r_groups(self):
         self.smiles_generator = SmilesGenerator(self.enter_smiles_line_edit.text())
+        self.r_group_substituents = {}
         self.r_group_select_buttons = {}
+        self.r_group_rows = {}
+        r_groups = sorted(self.smiles_generator.r_groups)
         row = 1
-        for r_group in sorted(self.smiles_generator.r_groups):
+        for r_group in r_groups:
+            self.r_group_rows[r_group] = row
             self.r_group_select_buttons[r_group] = QPushButton("Select")
+            self.r_group_select_buttons[r_group].clicked.connect(lambda _, r=r_group: self.open_selection_dialog(r_group =r))
             self.r_groups_layout.addWidget(QLabel(r_group),row,0)
             self.r_groups_layout.addWidget(self.r_group_select_buttons[r_group],row,2)
             row += 1
-        for r_group in self.r_group_select_buttons:
-            self.r_group_select_buttons[r_group].clicked.connect(lambda: self.open_selection_dialog(r_group))
+            
 
     def open_selection_dialog(self, r_group):
         select_subs_dialog = SelectSubsDialog(r_group, self.fg_sets_dict)
         select_subs_dialog.exec_()
+        if select_subs_dialog.substituents:
+            self.r_group_substituents[r_group] = select_subs_dialog.substituents
+            substituents_label = ", ".join(self.r_group_substituents[r_group])
+            self.r_groups_layout.addWidget(QLabel(substituents_label, wordWrap = True),self.r_group_rows[r_group],1)    
 
