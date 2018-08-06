@@ -41,7 +41,7 @@ class SmilesGenerator:
             iterations //= len(r_group_substitutions[r])
 
     def generate_output_list(self):
-        self.output = []
+        output = []
         # Splices together R groups from the substitution lists with the remaining SMILES fragments from the input string
         for i in range(len(self.substitutions_list)):
             new_smiles = ''
@@ -50,5 +50,6 @@ class SmilesGenerator:
                 new_smiles += self.substitutions_list[i][j]
             new_smiles += self.input_split[-1]
             new_smiles = new_smiles.replace('Q','')
-            self.output.append([new_smiles])
+            output.append([new_smiles])
+        return output
 

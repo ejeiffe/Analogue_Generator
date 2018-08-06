@@ -1,3 +1,6 @@
+import csv
+from datetime import datetime
+
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
@@ -23,11 +26,16 @@ class AGTabs(QWidget):
         self.enter_smiles_label = QLabel("Enter SMILES string:")
         self.enter_smiles_line_edit = QLineEdit()
         self.submit_smiles_button = QPushButton("Submit")
+        self.generate_csv_button = QPushButton("Generate CSV File")
         self.generate_analogues_exit_button = QPushButton("Exit")
 
         self.r_groups_layout = QGridLayout()
         self.r_groups_layout.addWidget(QLabel("R Group"),0,0)
         self.r_groups_layout.addWidget(QLabel("Substituents"),0,1)
+
+        self.generate_analogues_button_layout = QHBoxLayout()
+        self.generate_analogues_button_layout.addWidget(self.generate_csv_button)
+        self.generate_analogues_button_layout.addWidget(self.generate_analogues_exit_button, 0, Qt.AlignRight)
         
         self.generate_analogues_top_layout = QHBoxLayout()
         self.generate_analogues_top_layout.addWidget(self.enter_smiles_label)
@@ -37,7 +45,7 @@ class AGTabs(QWidget):
         self.generate_analogues_layout = QVBoxLayout()
         self.generate_analogues_layout.addLayout(self.generate_analogues_top_layout)
         self.generate_analogues_layout.addLayout(self.r_groups_layout)
-        self.generate_analogues_layout.addWidget(self.generate_analogues_exit_button, 0, Qt.AlignRight)
+        self.generate_analogues_layout.addLayout(self.generate_analogues_button_layout)
         self.generate_analogues_tab.setLayout(self.generate_analogues_layout)
 
         self.custom_groups_exit_button = QPushButton("Exit")
@@ -57,10 +65,16 @@ class AGTabs(QWidget):
         self.setLayout(self.tab_widget_layout)
 
         self.submit_smiles_button.clicked.connect(self.get_r_groups)
+        self.generate_csv_button.clicked.connect(self.generate_csv_file)
 
-    def get_r_groups(self):
+    def initialise_smiles_generator(self):
         self.smiles_generator = SmilesGenerator(self.enter_smiles_line_edit.text())
         self.r_group_substituents = {}
+        self.r_group_select_buttons = {}
+        self.r_group_rows = {}
+
+    def get_r_groups(self):
+        self.initialise_smiles_generator()
         self.r_group_select_buttons = {}
         self.r_group_rows = {}
         r_groups = sorted(self.smiles_generator.r_groups)
@@ -73,7 +87,6 @@ class AGTabs(QWidget):
             self.r_groups_layout.addWidget(self.r_group_select_buttons[r_group],row,2)
             row += 1
             
-
     def open_selection_dialog(self, r_group):
         select_subs_dialog = SelectSubsDialog(r_group, self.fg_sets_dict)
         select_subs_dialog.exec_()
@@ -82,3 +95,22 @@ class AGTabs(QWidget):
             substituents_label = ", ".join(self.r_group_substituents[r_group])
             self.r_groups_layout.addWidget(QLabel(substituents_label, wordWrap = True),self.r_group_rows[r_group],1)    
 
+    def get_r_group_smiles(self):
+        self.r_group_smiles = {}
+        for r_group in self.smiles_generator.r_groups:
+            if r_group == self.smiles_generator.r_groups[0]:
+                selection = [functional_groups[group][1] if len(functional_groups[group]) == 2 else functional_groups[group][0] for group in groups]
+            else:
+                selection = [functional_groups[group][0] for group in groups]
+            self.r_group_smiles[r_group] = smiles
+
+    def generate_csv_file(self):
+        self.get_r_group_smiles()
+        self.smiles_generator.generate_substitutions_list()
+        output = self.smiles_generator.generate_output_list()
+        filename = "analogue_generator_"+str(datetime.now())[:-7].replace(" ", "_").replace(":", "")+".csv"
+        with open(filename, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerows(output)
+        csvfile.close()
+    
