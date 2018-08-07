@@ -27,6 +27,7 @@ class AGTabs(QWidget):
         self.enter_smiles_line_edit = QLineEdit()
         self.submit_smiles_button = QPushButton("Submit")
         self.generate_csv_button = QPushButton("Generate CSV File")
+        self.generate_csv_button.setEnabled(False)
         self.generate_analogues_exit_button = QPushButton("Exit")
 
         self.r_groups_layout = QGridLayout()
@@ -93,20 +94,22 @@ class AGTabs(QWidget):
         if select_subs_dialog.substituents:
             self.r_group_substituents[r_group] = select_subs_dialog.substituents
             substituents_label = ", ".join(self.r_group_substituents[r_group])
-            self.r_groups_layout.addWidget(QLabel(substituents_label, wordWrap = True),self.r_group_rows[r_group],1)    
+            self.r_groups_layout.addWidget(QLabel(substituents_label, wordWrap = True),self.r_group_rows[r_group],1)
+        if len(self.r_group_substituents) == len(self.smiles_generator.r_groups):
+            self.generate_csv_button.setEnabled(True)    
 
     def get_r_group_smiles(self):
         self.r_group_smiles = {}
         for r_group in self.smiles_generator.r_groups:
             if r_group == self.smiles_generator.r_groups[0]:
-                selection = [functional_groups[group][1] if len(functional_groups[group]) == 2 else functional_groups[group][0] for group in groups]
+                smiles = [self.fg_dict[group][1] if len(self.fg_dict[group]) == 2 else self.fg_dict[group][0] for group in self.r_group_substituents[r_group]]
             else:
-                selection = [functional_groups[group][0] for group in groups]
+                smiles = [self.fg_dict[group][0] for group in self.r_group_substituents[r_group]]
             self.r_group_smiles[r_group] = smiles
 
     def generate_csv_file(self):
         self.get_r_group_smiles()
-        self.smiles_generator.generate_substitutions_list()
+        self.smiles_generator.generate_substitutions_list(self.r_group_smiles)
         output = self.smiles_generator.generate_output_list()
         filename = "analogue_generator_"+str(datetime.now())[:-7].replace(" ", "_").replace(":", "")+".csv"
         with open(filename, 'w', newline='') as csvfile:
