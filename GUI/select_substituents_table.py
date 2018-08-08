@@ -3,9 +3,8 @@ from PyQt5.QtGui import *
 
 class SelectSubsTable(QTableWidget):
 
-    def __init__(self, r_group, fg_sets_dict):
+    def __init__(self, fg_sets_dict):
         super().__init__()
-        self.r_group = r_group
         self.fg_sets_dict = fg_sets_dict
 
         self.setRowCount(len(self.fg_sets_dict))

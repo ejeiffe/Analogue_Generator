@@ -26,7 +26,6 @@ class AGMainWindow(QMainWindow):
         self.central_widget.custom_groups_exit_button.clicked.connect(self.close)
         self.central_widget.custom_sets_exit_button.clicked.connect(self.close)
 
-
     def load_functional_groups(self):
         fg_in = open("fg_dict.pickle", "rb")
         self.fg_dict = pickle.load(fg_in)
@@ -39,11 +38,11 @@ class AGMainWindow(QMainWindow):
 
     def set_up_dictionaries(self):
         if os.path.exists("fg_dict.pickle"):
-            load_functional_groups()
+            self.load_functional_groups()
         else:
             self.fg_dict = functional_groups
         if os.path.exists("fg_sets_dict.pickle"):
-            load_functional_group_sets()
+            self.load_functional_group_sets()
         else:
             self.fg_sets_dict = fg_sets_dict
 
