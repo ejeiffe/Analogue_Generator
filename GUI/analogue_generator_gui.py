@@ -23,9 +23,9 @@ class AGMainWindow(QMainWindow):
         self.setCentralWidget(self.central_widget)
 
         self.central_widget.generate_analogues_exit_button.clicked.connect(self.close)
-        self.central_widget.custom_groups_exit_button.clicked.connect(self.close)
-        self.central_widget.custom_sets_exit_button.clicked.connect(self.close)
-
+        self.central_widget.manage_groups_exit_button.clicked.connect(self.close)
+        self.central_widget.manage_sets_exit_button.clicked.connect(self.close)
+        
     def load_functional_groups(self):
         fg_in = open("fg_dict.pickle", "rb")
         self.fg_dict = pickle.load(fg_in)

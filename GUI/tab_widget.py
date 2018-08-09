@@ -1,4 +1,5 @@
 import csv
+import pickle
 from datetime import datetime
 
 from PyQt5.QtWidgets import *
@@ -16,13 +17,13 @@ class AGTabs(QWidget):
 
         self.tabs = QTabWidget()
         self.generate_analogues_tab = QWidget()
-        self.custom_groups_tab = QWidget()
-        self.custom_sets_tab = QWidget()
-
+        self.manage_groups_tab = QWidget()
+        self.manage_sets_tab = QWidget()
+        
         self.tabs.addTab(self.generate_analogues_tab, "Generate Analogues")
-        self.tabs.addTab(self.custom_groups_tab, "Custom Groups")
-        self.tabs.addTab(self.custom_sets_tab, "Custom Sets")
-
+        self.tabs.addTab(self.manage_groups_tab, "Manage Functional Groups")
+        self.tabs.addTab(self.manage_sets_tab, "Manage Sets")
+        
         self.enter_smiles_label = QLabel("Enter SMILES string:")
         self.enter_smiles_line_edit = QLineEdit()
         self.submit_smiles_button = QPushButton("Submit")
@@ -49,17 +50,34 @@ class AGTabs(QWidget):
         self.generate_analogues_layout.addLayout(self.generate_analogues_button_layout)
         self.generate_analogues_tab.setLayout(self.generate_analogues_layout)
 
-        self.custom_groups_exit_button = QPushButton("Exit")
+        self.manage_groups_table = SelectSubsTable(self.fg_sets_dict)
+
+        self.manage_groups_create_new_button = QPushButton("Create New Group")
+        self.manage_groups_view_smiles_button = QPushButton("View SMILES")
+        self.manage_groups_view_smiles_button.setEnabled(False)
+        self.manage_groups_add_button = QPushButton("Add to Set")
+        self.manage_groups_add_button.setEnabled(False)
+        self.manage_groups_delete_group_button = QPushButton("Delete Group(s)")
+        self.manage_groups_delete_group_button.setEnabled(False)
+        self.manage_groups_exit_button = QPushButton("Exit")
+
+        self.manage_groups_button_layout = QHBoxLayout()
+        self.manage_groups_button_layout.addWidget(self.manage_groups_create_new_button)
+        self.manage_groups_button_layout.addWidget(self.manage_groups_view_smiles_button)
+        self.manage_groups_button_layout.addWidget(self.manage_groups_add_button)
+        self.manage_groups_button_layout.addWidget(self.manage_groups_delete_group_button)
+        self.manage_groups_button_layout.addWidget(self.manage_groups_exit_button)
         
-        self.custom_groups_layout = QVBoxLayout()
-        self.custom_groups_layout.addWidget(self.custom_groups_exit_button, 0, Qt.AlignRight)
-        self.custom_groups_tab.setLayout(self.custom_groups_layout)
+        self.manage_groups_layout = QVBoxLayout()
+        self.manage_groups_layout.addWidget(self.manage_groups_table)
+        self.manage_groups_layout.addLayout(self.manage_groups_button_layout)
+        self.manage_groups_tab.setLayout(self.manage_groups_layout)
 
-        self.custom_sets_exit_button = QPushButton("Exit")
+        self.manage_sets_exit_button = QPushButton("Exit")
 
-        self.custom_sets_layout = QVBoxLayout()
-        self.custom_sets_layout.addWidget(self.custom_sets_exit_button, 0, Qt.AlignRight)
-        self.custom_sets_tab.setLayout(self.custom_sets_layout)
+        self.manage_sets_layout = QVBoxLayout()
+        self.manage_sets_layout.addWidget(self.manage_sets_exit_button, 0, Qt.AlignRight)
+        self.manage_sets_tab.setLayout(self.manage_sets_layout)
 
         self.tab_widget_layout = QVBoxLayout()
         self.tab_widget_layout.addWidget(self.tabs)
@@ -68,16 +86,16 @@ class AGTabs(QWidget):
         self.submit_smiles_button.clicked.connect(self.get_r_groups)
         self.generate_csv_button.clicked.connect(self.generate_csv_file)
 
-    def initialise_smiles_generator(self):
+    def initialise_new_smiles_generator(self):
         self.smiles_generator = SmilesGenerator(self.enter_smiles_line_edit.text())
         self.r_group_substituents = {}
         self.r_group_select_buttons = {}
         self.r_group_rows = {}
-
-    def get_r_groups(self):
-        self.initialise_smiles_generator()
         self.r_group_select_buttons = {}
         self.r_group_rows = {}
+
+    def get_r_groups(self):
+        self.initialise_new_smiles_generator()
         r_groups = sorted(self.smiles_generator.r_groups)
         row = 1
         for r_group in r_groups:
@@ -95,6 +113,8 @@ class AGTabs(QWidget):
             self.r_group_substituents[r_group] = select_subs_dialog.substituents
             substituents_label = ", ".join(self.r_group_substituents[r_group])
             self.r_groups_layout.addWidget(QLabel(substituents_label, wordWrap = True),self.r_group_rows[r_group],1)
+        if select_subs_dialog.new_set_saved:
+            self.load_functional_group_sets()
         if len(self.r_group_substituents) == len(self.smiles_generator.r_groups):
             self.generate_csv_button.setEnabled(True)    
 
@@ -116,4 +136,14 @@ class AGTabs(QWidget):
             writer = csv.writer(csvfile)
             writer.writerows(output)
         csvfile.close()
+
+    def load_functional_groups(self):
+        fg_in = open("fg_dict.pickle", "rb")
+        self.fg_dict = pickle.load(fg_in)
+        fg_in.close()
+
+    def load_functional_group_sets(self):  
+        fg_sets_in = open("fg_sets_dict.pickle", "rb")
+        self.fg_sets_dict = pickle.load(fg_sets_in)
+        fg_sets_in.close()
     
