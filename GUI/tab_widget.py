@@ -7,6 +7,7 @@ from PyQt5.QtCore import *
 
 from smiles_generator import *
 from select_substituents_dialog import *
+from new_group_dialog import *
 
 class AGTabs(QWidget):
 
@@ -55,8 +56,8 @@ class AGTabs(QWidget):
         self.manage_groups_create_new_button = QPushButton("Create New Group")
         self.manage_groups_view_smiles_button = QPushButton("View SMILES")
         self.manage_groups_view_smiles_button.setEnabled(False)
-        self.manage_groups_add_button = QPushButton("Add to Set")
-        self.manage_groups_add_button.setEnabled(False)
+        self.manage_groups_add_to_set_button = QPushButton("Add to Set")
+        self.manage_groups_add_to_set_button.setEnabled(False)
         self.manage_groups_delete_group_button = QPushButton("Delete Group(s)")
         self.manage_groups_delete_group_button.setEnabled(False)
         self.manage_groups_exit_button = QPushButton("Exit")
@@ -64,7 +65,7 @@ class AGTabs(QWidget):
         self.manage_groups_button_layout = QHBoxLayout()
         self.manage_groups_button_layout.addWidget(self.manage_groups_create_new_button)
         self.manage_groups_button_layout.addWidget(self.manage_groups_view_smiles_button)
-        self.manage_groups_button_layout.addWidget(self.manage_groups_add_button)
+        self.manage_groups_button_layout.addWidget(self.manage_groups_add_to_set_button)
         self.manage_groups_button_layout.addWidget(self.manage_groups_delete_group_button)
         self.manage_groups_button_layout.addWidget(self.manage_groups_exit_button)
         
@@ -85,6 +86,9 @@ class AGTabs(QWidget):
 
         self.submit_smiles_button.clicked.connect(self.get_r_groups)
         self.generate_csv_button.clicked.connect(self.generate_csv_file)
+
+        self.manage_groups_table.clicked.connect(self.enable_manage_groups_buttons)
+        self.manage_groups_create_new_button.clicked.connect(self.open_new_group_dialog)
 
     def initialise_new_smiles_generator(self):
         self.smiles_generator = SmilesGenerator(self.enter_smiles_line_edit.text())
@@ -146,4 +150,17 @@ class AGTabs(QWidget):
         fg_sets_in = open("fg_sets_dict.pickle", "rb")
         self.fg_sets_dict = pickle.load(fg_sets_in)
         fg_sets_in.close()
+
+    def enable_manage_groups_buttons(self):
+        self.manage_groups_view_smiles_button.setEnabled(True)
+        self.manage_groups_add_to_set_button.setEnabled(True)
+        self.manage_groups_delete_group_button.setEnabled(True)
+
+    def open_new_group_dialog(self):
+        new_group_dialog = NewGroupDialog(self.fg_dict, self.fg_sets_dict)
+        new_group_dialog.exec_()
+        if new_group_dialog.group_added:
+            self.load_functional_groups()
+            self.load_functional_group_sets()
+            self.manage_groups_table.populate_table()
     
