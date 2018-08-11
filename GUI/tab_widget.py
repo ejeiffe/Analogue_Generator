@@ -89,6 +89,7 @@ class AGTabs(QWidget):
 
         self.manage_groups_table.clicked.connect(self.enable_manage_groups_buttons)
         self.manage_groups_create_new_button.clicked.connect(self.open_new_group_dialog)
+        self.manage_groups_add_to_set_button.clicked.connect(self.open_add_to_set_dialog)
 
     def initialise_new_smiles_generator(self):
         self.smiles_generator = SmilesGenerator(self.enter_smiles_line_edit.text())
@@ -163,4 +164,12 @@ class AGTabs(QWidget):
             self.load_functional_groups()
             self.load_functional_group_sets()
             self.manage_groups_table.populate_table()
+
+    def open_add_to_set_dialog(self):
+        groups = [item.text() for item in self.manage_groups_table.selectedItems()]
+        groups = list(set(groups))
+        add_to_set_dialog = AddToSetDialog(groups, self.fg_sets_dict)
+        add_to_set_dialog.exec_()
+        self.load_functional_group_sets()
+        self.manage_groups_table.populate_table()
     

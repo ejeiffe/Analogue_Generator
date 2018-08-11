@@ -6,12 +6,12 @@ from new_set_dialog import *
 
 class AddToSetDialog(QDialog):
 
-    def __init__(self, group_name, fg_sets_dict):
+    def __init__(self, groups, fg_sets_dict):
         super().__init__()
-        self.group_name = group_name
+        self.groups = groups
         self.fg_sets_dict = fg_sets_dict
 
-        self.setWindowTitle("Add New Group to Set")
+        self.setWindowTitle("Add Group(s) to Set")
 
         self.set_names = fg_sets_dict.keys()
         self.select_set_label = QLabel("Select Set")
@@ -36,12 +36,13 @@ class AddToSetDialog(QDialog):
 
     def add_to_selected_set(self):
         set_name = self.sets_combo_box.currentText()
-        self.fg_sets_dict[set_name].append(self.group_name)
+        for group in self.groups:
+            self.fg_sets_dict[set_name].append(group)
         self.save_functional_group_sets()
         self.close()
 
     def open_new_set_dialog(self):
-        new_set_dialog = NewSetDialog(self.group_name, self.fg_sets_dict)
+        new_set_dialog = NewSetDialog(self.groups, self.fg_sets_dict)
         new_set_dialog.exec_()
         self.close()
 
