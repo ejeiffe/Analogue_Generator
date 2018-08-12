@@ -8,6 +8,7 @@ from PyQt5.QtCore import *
 from smiles_generator import *
 from select_substituents_dialog import *
 from new_group_dialog import *
+from view_smiles_dialog import *
 
 class AGTabs(QWidget):
 
@@ -89,6 +90,7 @@ class AGTabs(QWidget):
 
         self.manage_groups_table.clicked.connect(self.enable_manage_groups_buttons)
         self.manage_groups_create_new_button.clicked.connect(self.open_new_group_dialog)
+        self.manage_groups_view_smiles_button.clicked.connect(self.open_view_smiles_dialog)
         self.manage_groups_add_to_set_button.clicked.connect(self.open_add_to_set_dialog)
 
     def initialise_new_smiles_generator(self):
@@ -153,7 +155,10 @@ class AGTabs(QWidget):
         fg_sets_in.close()
 
     def enable_manage_groups_buttons(self):
-        self.manage_groups_view_smiles_button.setEnabled(True)
+        if len(self.manage_groups_table.selectedItems()) == 1:
+            self.manage_groups_view_smiles_button.setEnabled(True)
+        else:
+            self.manage_groups_view_smiles_button.setEnabled(False)
         self.manage_groups_add_to_set_button.setEnabled(True)
         self.manage_groups_delete_group_button.setEnabled(True)
 
@@ -164,6 +169,13 @@ class AGTabs(QWidget):
             self.load_functional_groups()
             self.load_functional_group_sets()
             self.manage_groups_table.populate_table()
+
+    def open_view_smiles_dialog(self):
+        group_name = self.manage_groups_table.currentItem().text()
+        view_smiles_dialog = ViewSmilesDialog(group_name, self.fg_dict)
+        view_smiles_dialog.exec_()
+        if view_smiles_dialog.smiles_changed:
+            self.load_functional_groups()
 
     def open_add_to_set_dialog(self):
         groups = [item.text() for item in self.manage_groups_table.selectedItems()]
