@@ -72,7 +72,7 @@ The second SMILES string will be used when the R group is at the beginning of th
             self.close()
 
     def open_add_to_set_dialog(self, group_name):
-        add_to_set_dialog = AddToSetDialog(group_name, self.fg_sets_dict)
+        add_to_set_dialog = AddToSetDialog([group_name], self.fg_sets_dict)
         add_to_set_dialog.exec_()
         
     def save_functional_groups(self):

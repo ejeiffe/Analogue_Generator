@@ -92,6 +92,7 @@ class AGTabs(QWidget):
         self.manage_groups_create_new_button.clicked.connect(self.open_new_group_dialog)
         self.manage_groups_view_smiles_button.clicked.connect(self.open_view_smiles_dialog)
         self.manage_groups_add_to_set_button.clicked.connect(self.open_add_to_set_dialog)
+        self.manage_groups_delete_group_button.clicked.connect(self.confirm_delete_group)
 
     def initialise_new_smiles_generator(self):
         self.smiles_generator = SmilesGenerator(self.enter_smiles_line_edit.text())
@@ -154,6 +155,17 @@ class AGTabs(QWidget):
         self.fg_sets_dict = pickle.load(fg_sets_in)
         fg_sets_in.close()
 
+    def save_functional_groups(self):
+        fg_out = open("fg_dict.pickle","wb")
+        pickle.dump(self.fg_dict, fg_out)
+        fg_out.close()
+
+    def save_functional_group_sets(self):
+        fg_sets_out = open("fg_sets_dict.pickle", "wb")
+        pickle.dump(self.fg_sets_dict, fg_sets_out)
+        fg_sets_out.close()
+
+
     def enable_manage_groups_buttons(self):
         if len(self.manage_groups_table.selectedItems()) == 1:
             self.manage_groups_view_smiles_button.setEnabled(True)
@@ -184,4 +196,28 @@ class AGTabs(QWidget):
         add_to_set_dialog.exec_()
         self.load_functional_group_sets()
         self.manage_groups_table.populate_table()
+
+    def confirm_delete_group(self):
+        confirm_delete_message = QMessageBox()
+        confirm_delete_message.setWindowTitle("Delete groups")
+        confirm_delete_message.setText(f"Are you sure you want to delete the selected functional groups?")
+        confirm_delete_message.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        confirm = confirm_delete_message.exec_()
+        if confirm == QMessageBox.Yes:
+            self.delete_groups()
+            self.save_functional_groups()
+            self.save_functional_group_sets()
+            self.manage_groups_table.clear()
+            self.manage_groups_table.load_functional_group_sets()
+            self.manage_groups_table.populate_table()
     
+    def delete_groups(self):
+        groups = [item.text() for item in self.manage_groups_table.selectedItems()]
+        for group in groups:
+            del self.fg_dict[group]
+            for set_name in self.fg_sets_dict:
+                if group in self.fg_sets_dict[set_name]:
+                    self.fg_sets_dict[set_name].remove(group)
+
+
+
