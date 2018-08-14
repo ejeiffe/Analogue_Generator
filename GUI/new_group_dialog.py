@@ -1,15 +1,13 @@
-import pickle
-
 from PyQt5.QtWidgets import *
 
+from dict_manager import *
 from add_to_set_dialog import *
 
 class NewGroupDialog(QDialog):
 
-    def __init__(self, fg_dict, fg_sets_dict):
+    def __init__(self):
         super().__init__()
-        self.fg_dict = fg_dict
-        self.fg_sets_dict = fg_sets_dict
+        self.dict_manager = DictManager()
         self.group_added = False
 
         self.setWindowTitle("New Functional Group")
@@ -56,30 +54,25 @@ The second SMILES string will be used when the R group is at the beginning of th
         group_name = self.group_name_line_edit.text()
         first_smiles = self.first_smiles_line_edit.text()
         second_smiles = self.second_smiles_line_edit.text()
-        if group_name in self.fg_dict:
+        if group_name in self.dict_manager.fg_dict:
             invalid_name_message = QMessageBox()
             invalid_name_message.setWindowTitle("Invalid Group Name")
             invalid_name_message.setText(f"The group '{group_name}' already exists. Please choose another name")
             invalid_name_message.exec_()
         else:
             if second_smiles != "":
-                self.fg_dict[group_name] = (first_smiles, second_smiles)
+                self.dict_manager.fg_dict[group_name] = (first_smiles, second_smiles)
             else:
-                self.fg_dict[group_name] = (first_smiles,)
+                self.dict_manager.fg_dict[group_name] = (first_smiles,)
             self.open_add_to_set_dialog(group_name)
-            self.save_functional_groups()
+            self.dict_manager.save_functional_groups()
             self.group_added = True
             self.close()
 
     def open_add_to_set_dialog(self, group_name):
-        add_to_set_dialog = AddToSetDialog([group_name], self.fg_sets_dict)
+        add_to_set_dialog = AddToSetDialog([group_name])
         add_to_set_dialog.exec_()
         
-    def save_functional_groups(self):
-        fg_out = open("fg_dict.pickle","wb")
-        pickle.dump(self.fg_dict, fg_out)
-        fg_out.close()
-
 
 
 

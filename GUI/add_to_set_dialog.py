@@ -1,19 +1,18 @@
-import pickle
-
 from PyQt5.QtWidgets import *
 
+from dict_manager import *
 from new_set_dialog import *
 
 class AddToSetDialog(QDialog):
 
-    def __init__(self, groups, fg_sets_dict):
+    def __init__(self, groups):
         super().__init__()
         self.groups = groups
-        self.fg_sets_dict = fg_sets_dict
+        self.dict_manager = DictManager()
 
         self.setWindowTitle("Add Group(s) to Set")
 
-        self.set_names = fg_sets_dict.keys()
+        self.set_names = self.dict_manager.fg_sets_dict.keys()
         self.select_set_label = QLabel("Select Set")
         self.sets_combo_box = QComboBox()
         self.sets_combo_box.addItems(self.set_names)
@@ -37,19 +36,15 @@ class AddToSetDialog(QDialog):
     def add_to_selected_set(self):
         set_name = self.sets_combo_box.currentText()
         for group in self.groups:
-            self.fg_sets_dict[set_name].append(group)
-        self.save_functional_group_sets()
+            self.dict_manager.fg_sets_dict[set_name].append(group)
+        self.dict_manager.save_functional_group_sets()
         self.close()
 
     def open_new_set_dialog(self):
-        new_set_dialog = NewSetDialog(self.groups, self.fg_sets_dict)
+        new_set_dialog = NewSetDialog(self.groups)
         new_set_dialog.exec_()
         self.close()
 
-    def save_functional_group_sets(self):
-        fg_sets_out = open("fg_sets_dict.pickle", "wb")
-        pickle.dump(self.fg_sets_dict, fg_sets_out)
-        fg_sets_out.close()
 
 
 

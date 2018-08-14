@@ -1,13 +1,13 @@
-import pickle
-
 from PyQt5.QtWidgets import *
+
+from dict_manager import *
 
 class NewSetDialog(QDialog):
 
-    def __init__(self, group_name, fg_sets_dict):
+    def __init__(self, groups):
         super().__init__()
-        self.group_name = group_name
-        self.fg_sets_dict = fg_sets_dict
+        self.groups = groups
+        self.dict_manager = DictManager()
 
         self.setWindowTitle("New Set")
         
@@ -37,12 +37,8 @@ class NewSetDialog(QDialog):
 
     def save_set(self):
         set_name = self.set_name_line_edit.text()
-        self.fg_sets_dict[set_name] = list(self.group_name)
-        self.save_functional_group_sets()
+        self.dict_manager.fg_sets_dict[set_name] = self.groups
+        self.dict_manager.save_functional_group_sets()
         self.close()
 
-    def save_functional_group_sets(self):
-        fg_sets_out = open("fg_sets_dict.pickle", "wb")
-        pickle.dump(self.fg_sets_dict, fg_sets_out)
-        fg_sets_out.close()
         

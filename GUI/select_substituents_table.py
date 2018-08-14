@@ -1,13 +1,13 @@
-import pickle
-
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 
+from dict_manager import *
+
 class SelectSubsTable(QTableWidget):
 
-    def __init__(self, fg_sets_dict):
+    def __init__(self):
         super().__init__()
-        self.fg_sets_dict = fg_sets_dict
+        self.dict_manager = DictManager()
 
         self.horizontalHeader().setVisible(False)
 
@@ -16,14 +16,15 @@ class SelectSubsTable(QTableWidget):
         self.populate_table()
 
     def populate_table(self):
-        self.setRowCount(len(self.fg_sets_dict))
+        self.dict_manager.load_functional_group_sets()
+        self.setRowCount(len(self.dict_manager.fg_sets_dict))
         self.setColumnCount(8)
-        self.setVerticalHeaderLabels([key for key in self.fg_sets_dict.keys()])
+        self.setVerticalHeaderLabels([key for key in self.dict_manager.fg_sets_dict.keys()])
         row = 0
         column_count = 8
-        for key in self.fg_sets_dict.keys():
+        for key in self.dict_manager.fg_sets_dict.keys():
             column = 0
-            for item in self.fg_sets_dict[key]:
+            for item in self.dict_manager.fg_sets_dict[key]:
                 if column > column_count:
                     column_count = column
                     self.setColumnCount(column_count)
@@ -32,7 +33,3 @@ class SelectSubsTable(QTableWidget):
                 column += 1   
             row += 1
 
-    def load_functional_group_sets(self):
-        fg_sets_in = open("fg_sets_dict.pickle", "rb")
-        self.fg_sets_dict = pickle.load(fg_sets_in)
-        fg_sets_in.close()

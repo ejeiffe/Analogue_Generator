@@ -1,13 +1,13 @@
-import pickle
-
 from PyQt5.QtWidgets import *
+
+from dict_manager import *
 
 class SaveSelectionDialog(QDialog):
 
-    def __init__(self, selection, fg_sets_dict):
+    def __init__(self, selection):
         super().__init__()
         self.selection = selection
-        self.fg_sets_dict = fg_sets_dict
+        self.dict_manager = DictManager()
         self.substituents_label_text = ', '.join(selection)
         self.new_set_saved = False
 
@@ -43,12 +43,8 @@ class SaveSelectionDialog(QDialog):
 
     def save_custom_set(self):
         custom_set_name = self.custom_set_name_line_edit.text()
-        self.fg_sets_dict[custom_set_name] = self.selection
-        self.save_functional_group_sets()
+        self.dict_manager.fg_sets_dict[custom_set_name] = self.selection
+        self.dict_manager.save_functional_group_sets()
         self.new_set_saved = True
         self.close()
 
-    def save_functional_group_sets(self):
-        fg_sets_out = open("fg_sets_dict.pickle", "wb")
-        pickle.dump(self.fg_sets_dict, fg_sets_out)
-        fg_sets_out.close()

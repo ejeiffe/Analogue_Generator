@@ -5,10 +5,9 @@ from save_selection_dialog import *
 
 class SelectSubsDialog(QDialog):
 
-    def __init__(self, r_group, fg_sets_dict):
+    def __init__(self, r_group):
         super().__init__()
         self.r_group = r_group
-        self.fg_sets_dict = fg_sets_dict
         self.substituents = None
         self.new_set_saved = False
 
@@ -16,7 +15,7 @@ class SelectSubsDialog(QDialog):
 
         self.instructions_label = QLabel("Ctrl + click to select multiple items.")
 
-        self.select_subs_table = SelectSubsTable(self.fg_sets_dict)
+        self.select_subs_table = SelectSubsTable()
 
         self.save_button = QPushButton("Save Selection")
         self.save_button.setEnabled(False)
@@ -54,7 +53,7 @@ class SelectSubsDialog(QDialog):
 
     def save_selection(self):
         self.get_substituents()
-        save_selection_dialog = SaveSelectionDialog(self.substituents, self.fg_sets_dict)
+        save_selection_dialog = SaveSelectionDialog(self.substituents)
         save_selection_dialog.exec_()
         if save_selection_dialog.new_set_saved:
             self.new_set_saved = True

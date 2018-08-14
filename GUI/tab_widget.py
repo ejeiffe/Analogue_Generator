@@ -1,10 +1,10 @@
 import csv
-import pickle
 from datetime import datetime
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
+from dict_manager import *
 from smiles_generator import *
 from select_substituents_dialog import *
 from new_group_dialog import *
@@ -12,10 +12,9 @@ from view_smiles_dialog import *
 
 class AGTabs(QWidget):
 
-    def __init__(self, fg_dict, fg_sets_dict):
+    def __init__(self):
         super().__init__()
-        self.fg_dict = fg_dict
-        self.fg_sets_dict = fg_sets_dict
+        self.dict_manager = DictManager()
 
         self.tabs = QTabWidget()
         self.generate_analogues_tab = QWidget()
@@ -52,7 +51,7 @@ class AGTabs(QWidget):
         self.generate_analogues_layout.addLayout(self.generate_analogues_button_layout)
         self.generate_analogues_tab.setLayout(self.generate_analogues_layout)
 
-        self.manage_groups_table = SelectSubsTable(self.fg_sets_dict)
+        self.manage_groups_table = SelectSubsTable()
 
         self.manage_groups_create_new_button = QPushButton("Create New Group")
         self.manage_groups_view_smiles_button = QPushButton("View SMILES")
@@ -115,14 +114,14 @@ class AGTabs(QWidget):
             row += 1
             
     def open_selection_dialog(self, r_group):
-        select_subs_dialog = SelectSubsDialog(r_group, self.fg_sets_dict)
+        select_subs_dialog = SelectSubsDialog(r_group)
         select_subs_dialog.exec_()
         if select_subs_dialog.substituents:
             self.r_group_substituents[r_group] = select_subs_dialog.substituents
             substituents_label = ", ".join(self.r_group_substituents[r_group])
             self.r_groups_layout.addWidget(QLabel(substituents_label, wordWrap = True),self.r_group_rows[r_group],1)
         if select_subs_dialog.new_set_saved:
-            self.load_functional_group_sets()
+            self.dict_manager.load_functional_group_sets()
         if len(self.r_group_substituents) == len(self.smiles_generator.r_groups):
             self.generate_csv_button.setEnabled(True)    
 
@@ -130,9 +129,9 @@ class AGTabs(QWidget):
         self.r_group_smiles = {}
         for r_group in self.smiles_generator.r_groups:
             if r_group == self.smiles_generator.r_groups[0]:
-                smiles = [self.fg_dict[group][1] if len(self.fg_dict[group]) == 2 else self.fg_dict[group][0] for group in self.r_group_substituents[r_group]]
+                smiles = [self.dict_manager.fg_dict[group][1] if len(self.dict_manager.fg_dict[group]) == 2 else self.dict_manager.fg_dict[group][0] for group in self.r_group_substituents[r_group]]
             else:
-                smiles = [self.fg_dict[group][0] for group in self.r_group_substituents[r_group]]
+                smiles = [self.dict_manager.fg_dict[group][0] for group in self.r_group_substituents[r_group]]
             self.r_group_smiles[r_group] = smiles
 
     def generate_csv_file(self):
@@ -145,26 +144,6 @@ class AGTabs(QWidget):
             writer.writerows(output)
         csvfile.close()
 
-    def load_functional_groups(self):
-        fg_in = open("fg_dict.pickle", "rb")
-        self.fg_dict = pickle.load(fg_in)
-        fg_in.close()
-
-    def load_functional_group_sets(self):  
-        fg_sets_in = open("fg_sets_dict.pickle", "rb")
-        self.fg_sets_dict = pickle.load(fg_sets_in)
-        fg_sets_in.close()
-
-    def save_functional_groups(self):
-        fg_out = open("fg_dict.pickle","wb")
-        pickle.dump(self.fg_dict, fg_out)
-        fg_out.close()
-
-    def save_functional_group_sets(self):
-        fg_sets_out = open("fg_sets_dict.pickle", "wb")
-        pickle.dump(self.fg_sets_dict, fg_sets_out)
-        fg_sets_out.close()
-
 
     def enable_manage_groups_buttons(self):
         if len(self.manage_groups_table.selectedItems()) == 1:
@@ -175,26 +154,26 @@ class AGTabs(QWidget):
         self.manage_groups_delete_group_button.setEnabled(True)
 
     def open_new_group_dialog(self):
-        new_group_dialog = NewGroupDialog(self.fg_dict, self.fg_sets_dict)
+        new_group_dialog = NewGroupDialog()
         new_group_dialog.exec_()
         if new_group_dialog.group_added:
-            self.load_functional_groups()
-            self.load_functional_group_sets()
+            self.dict_manager.load_functional_groups()
+            self.dict_manager.load_functional_group_sets()
             self.manage_groups_table.populate_table()
 
     def open_view_smiles_dialog(self):
         group_name = self.manage_groups_table.currentItem().text()
-        view_smiles_dialog = ViewSmilesDialog(group_name, self.fg_dict)
+        view_smiles_dialog = ViewSmilesDialog(group_name)
         view_smiles_dialog.exec_()
         if view_smiles_dialog.smiles_changed:
-            self.load_functional_groups()
+            self.dict_manager.load_functional_groups()
 
     def open_add_to_set_dialog(self):
         groups = [item.text() for item in self.manage_groups_table.selectedItems()]
         groups = list(set(groups))
-        add_to_set_dialog = AddToSetDialog(groups, self.fg_sets_dict)
+        add_to_set_dialog = AddToSetDialog(groups)
         add_to_set_dialog.exec_()
-        self.load_functional_group_sets()
+        self.dict_manager.load_functional_group_sets()
         self.manage_groups_table.populate_table()
 
     def confirm_delete_group(self):
@@ -205,19 +184,19 @@ class AGTabs(QWidget):
         confirm = confirm_delete_message.exec_()
         if confirm == QMessageBox.Yes:
             self.delete_groups()
-            self.save_functional_groups()
-            self.save_functional_group_sets()
+            self.dict_manager.save_functional_groups()
+            self.dict_manager.save_functional_group_sets()
             self.manage_groups_table.clear()
-            self.manage_groups_table.load_functional_group_sets()
+            self.manage_groups_table.dict_manager.load_functional_group_sets()
             self.manage_groups_table.populate_table()
     
     def delete_groups(self):
         groups = [item.text() for item in self.manage_groups_table.selectedItems()]
         for group in groups:
-            del self.fg_dict[group]
-            for set_name in self.fg_sets_dict:
-                if group in self.fg_sets_dict[set_name]:
-                    self.fg_sets_dict[set_name].remove(group)
+            del self.dict_manager.fg_dict[group]
+            for set_name in self.dict_manager.fg_sets_dict:
+                if group in self.dict_manager.fg_sets_dict[set_name]:
+                    self.dict_manager.fg_sets_dict[set_name].remove(group)
 
 
 

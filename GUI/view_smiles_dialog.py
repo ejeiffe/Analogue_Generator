@@ -1,13 +1,13 @@
-import pickle
-
 from PyQt5.QtWidgets import *
+
+from dict_manager import *
 
 class ViewSmilesDialog(QDialog):
 
-    def __init__(self, group_name, fg_dict):
+    def __init__(self, group_name):
         super().__init__()
         self.group_name = group_name
-        self.fg_dict = fg_dict
+        self.dict_manager = DictManager()
         self.smiles_changed = False
 
         self.setWindowTitle(f"SMILES for {self.group_name}")
@@ -17,9 +17,9 @@ class ViewSmilesDialog(QDialog):
         self.second_smiles_label = QLabel("Optional - SMILES (beginning of string):")
         self.second_smiles_line_edit = QLineEdit()
 
-        self.first_smiles_line_edit.setText(self.fg_dict[self.group_name][0])
-        if len(self.fg_dict[self.group_name]) == 2:
-            self.second_smiles_line_edit.setText(self.fg_dict[self.group_name][1])
+        self.first_smiles_line_edit.setText(self.dict_manager.fg_dict[self.group_name][0])
+        if len(self.dict_manager.fg_dict[self.group_name]) == 2:
+            self.second_smiles_line_edit.setText(self.dict_manager.fg_dict[self.group_name][1])
 
         self.save_changes_button = QPushButton("Save Changes")
         self.save_changes_button.setEnabled(False)
@@ -52,22 +52,15 @@ class ViewSmilesDialog(QDialog):
         confirm_save_message.setStandardButtons(QMessageBox.Save | QMessageBox.Cancel)
         confirm = confirm_save_message.exec_()
         if confirm == QMessageBox.Save:
-            self.save_smiles()
-        
+            self.save_smiles()     
 
     def save_smiles(self):
         first_smiles = self.first_smiles_line_edit.text()
         second_smiles = self.second_smiles_line_edit.text()
         if second_smiles != "":
-            self.fg_dict[self.group_name] = (first_smiles, second_smiles)
+            self.dict_manager.fg_dict[self.group_name] = (first_smiles, second_smiles)
         else:
-            self.fg_dict[self.group_name] = (first_smiles,)
-        self.save_functional_groups()
+            self.dict_manager.fg_dict[self.group_name] = (first_smiles,)
+        self.dict_manager.save_functional_groups()
         self.smiles_changed = True
         self.close()
-        
-
-    def save_functional_groups(self):
-        fg_out = open("fg_dict.pickle","wb")
-        pickle.dump(self.fg_dict, fg_out)
-        fg_out.close()
