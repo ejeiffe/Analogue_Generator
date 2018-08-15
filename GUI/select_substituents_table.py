@@ -15,6 +15,8 @@ class SelectSubsTable(QTableWidget):
 
         self.populate_table()
 
+        self.doubleClicked.connect(self.view_smiles)
+
     def populate_table(self):
         self.dict_manager.load_functional_group_sets()
         self.setRowCount(len(self.dict_manager.fg_sets_dict))
@@ -33,3 +35,11 @@ class SelectSubsTable(QTableWidget):
                 column += 1   
             row += 1
 
+    def view_smiles(self):
+        group_name = self.currentItem().text()
+        group_smiles = list(self.dict_manager.fg_dict[group_name])
+        smiles_message_box = QMessageBox()
+        smiles_message_box.setMinimumWidth(300)
+        smiles_message_box.setWindowTitle(f"SMILES for {group_name}")
+        smiles_message_box.setText(", ".join(group_smiles)+"\t\t\t")
+        smiles_message_box.exec_()

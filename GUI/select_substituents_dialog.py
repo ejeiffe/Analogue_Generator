@@ -13,7 +13,7 @@ class SelectSubsDialog(QDialog):
 
         self.setWindowTitle(f"Select Substituents for {self.r_group}")
 
-        self.instructions_label = QLabel("Ctrl + click to select multiple items.")
+        self.instructions_label = QLabel("Ctrl + click to select multiple items. Double click to view SMILES.")
 
         self.select_subs_table = SelectSubsTable()
 

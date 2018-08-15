@@ -8,7 +8,7 @@ from dict_manager import *
 from smiles_generator import *
 from select_substituents_dialog import *
 from new_group_dialog import *
-from view_smiles_dialog import *
+from edit_group_dialog import *
 
 class AGTabs(QWidget):
 
@@ -51,11 +51,12 @@ class AGTabs(QWidget):
         self.generate_analogues_layout.addLayout(self.generate_analogues_button_layout)
         self.generate_analogues_tab.setLayout(self.generate_analogues_layout)
 
+        self.manage_groups_instructions_label = QLabel("Ctrl + click to select multiple items. Double click to view SMILES.")
         self.manage_groups_table = SelectSubsTable()
 
         self.manage_groups_create_new_button = QPushButton("Create New Group")
-        self.manage_groups_view_smiles_button = QPushButton("View SMILES")
-        self.manage_groups_view_smiles_button.setEnabled(False)
+        self.manage_groups_edit_group_button = QPushButton("Edit Group")
+        self.manage_groups_edit_group_button.setEnabled(False)
         self.manage_groups_add_to_set_button = QPushButton("Add to Set")
         self.manage_groups_add_to_set_button.setEnabled(False)
         self.manage_groups_delete_group_button = QPushButton("Delete Group(s)")
@@ -64,12 +65,13 @@ class AGTabs(QWidget):
 
         self.manage_groups_button_layout = QHBoxLayout()
         self.manage_groups_button_layout.addWidget(self.manage_groups_create_new_button)
-        self.manage_groups_button_layout.addWidget(self.manage_groups_view_smiles_button)
+        self.manage_groups_button_layout.addWidget(self.manage_groups_edit_group_button)
         self.manage_groups_button_layout.addWidget(self.manage_groups_add_to_set_button)
         self.manage_groups_button_layout.addWidget(self.manage_groups_delete_group_button)
         self.manage_groups_button_layout.addWidget(self.manage_groups_exit_button)
         
         self.manage_groups_layout = QVBoxLayout()
+        self.manage_groups_layout.addWidget(self.manage_groups_instructions_label)
         self.manage_groups_layout.addWidget(self.manage_groups_table)
         self.manage_groups_layout.addLayout(self.manage_groups_button_layout)
         self.manage_groups_tab.setLayout(self.manage_groups_layout)
@@ -89,7 +91,7 @@ class AGTabs(QWidget):
 
         self.manage_groups_table.clicked.connect(self.enable_manage_groups_buttons)
         self.manage_groups_create_new_button.clicked.connect(self.open_new_group_dialog)
-        self.manage_groups_view_smiles_button.clicked.connect(self.open_view_smiles_dialog)
+        self.manage_groups_edit_group_button.clicked.connect(self.open_edit_group_dialog)
         self.manage_groups_add_to_set_button.clicked.connect(self.open_add_to_set_dialog)
         self.manage_groups_delete_group_button.clicked.connect(self.confirm_delete_group)
 
@@ -147,9 +149,9 @@ class AGTabs(QWidget):
 
     def enable_manage_groups_buttons(self):
         if len(self.manage_groups_table.selectedItems()) == 1:
-            self.manage_groups_view_smiles_button.setEnabled(True)
+            self.manage_groups_edit_group_button.setEnabled(True)
         else:
-            self.manage_groups_view_smiles_button.setEnabled(False)
+            self.manage_groups_edit_group_button.setEnabled(False)
         self.manage_groups_add_to_set_button.setEnabled(True)
         self.manage_groups_delete_group_button.setEnabled(True)
 
@@ -161,11 +163,11 @@ class AGTabs(QWidget):
             self.dict_manager.load_functional_group_sets()
             self.manage_groups_table.populate_table()
 
-    def open_view_smiles_dialog(self):
+    def open_edit_group_dialog(self):
         group_name = self.manage_groups_table.currentItem().text()
-        view_smiles_dialog = ViewSmilesDialog(group_name)
-        view_smiles_dialog.exec_()
-        if view_smiles_dialog.smiles_changed:
+        edit_group_dialog = EditGroupDialog(group_name)
+        edit_group_dialog.exec_()
+        if edit_group_dialog.group_changed:
             self.dict_manager.load_functional_groups()
 
     def open_add_to_set_dialog(self):
