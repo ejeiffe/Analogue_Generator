@@ -76,10 +76,46 @@ class AGTabs(QWidget):
         self.manage_groups_layout.addLayout(self.manage_groups_button_layout)
         self.manage_groups_tab.setLayout(self.manage_groups_layout)
 
+        self.manage_sets_list_label = QLabel("Functional Group Sets:")
+        self.manage_sets_list = QListWidget()
+        self.manage_sets_list.setFixedWidth(300)
+        self.manage_sets_list.addItems(self.dict_manager.fg_sets_dict.keys())
+
+        self.manage_sets_list_layout = QVBoxLayout()
+        self.manage_sets_list_layout.addWidget(self.manage_sets_list_label)
+        self.manage_sets_list_layout.addWidget(self.manage_sets_list)
+
+        self.manage_sets_set_contains_label = QLabel("Set contains:")
+        self.manage_sets_groups_label = QLabel()
+        self.manage_sets_info_label = QLabel()
+
+        self.manage_sets_label_layout = QVBoxLayout()
+        self.manage_sets_label_layout.addWidget(self.manage_sets_set_contains_label)
+        self.manage_sets_label_layout.addWidget(self.manage_sets_groups_label)
+        self.manage_sets_label_layout.addWidget(self.manage_sets_info_label)
+
+        self.manage_sets_top_layout = QHBoxLayout()
+        self.manage_sets_top_layout.addLayout(self.manage_sets_list_layout)
+        self.manage_sets_top_layout.addLayout(self.manage_sets_label_layout)
+
+        self.manage_sets_create_new_button = QPushButton("Create New Set")
+        self.manage_sets_edit_set_button = QPushButton("Edit Set")
+        self.manage_sets_edit_set_button.setEnabled(False)
+        self.manage_sets_reorder_sets_button = QPushButton("Reorder Sets")
+        self.manage_sets_delete_set_button = QPushButton("Delete Set(s)")
+        self.manage_sets_delete_set_button.setEnabled(False)
         self.manage_sets_exit_button = QPushButton("Exit")
 
+        self.manage_sets_button_layout = QHBoxLayout()
+        self.manage_sets_button_layout.addWidget(self.manage_sets_create_new_button)
+        self.manage_sets_button_layout.addWidget(self.manage_sets_edit_set_button)
+        self.manage_sets_button_layout.addWidget(self.manage_sets_reorder_sets_button)
+        self.manage_sets_button_layout.addWidget(self.manage_sets_delete_set_button)
+        self.manage_sets_button_layout.addWidget(self.manage_sets_exit_button)
+
         self.manage_sets_layout = QVBoxLayout()
-        self.manage_sets_layout.addWidget(self.manage_sets_exit_button, 0, Qt.AlignRight)
+        self.manage_sets_layout.addLayout(self.manage_sets_top_layout)
+        self.manage_sets_layout.addLayout(self.manage_sets_button_layout)
         self.manage_sets_tab.setLayout(self.manage_sets_layout)
 
         self.tab_widget_layout = QVBoxLayout()
