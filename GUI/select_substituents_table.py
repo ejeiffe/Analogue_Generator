@@ -18,6 +18,7 @@ class SelectSubsTable(QTableWidget):
         self.doubleClicked.connect(self.view_smiles)
 
     def populate_table(self):
+        self.clear()
         self.dict_manager.load_functional_group_sets()
         self.setRowCount(len(self.dict_manager.fg_sets_dict))
         self.setColumnCount(8)

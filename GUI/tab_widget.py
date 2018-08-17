@@ -1,5 +1,6 @@
 import csv
 from datetime import datetime
+from collections import OrderedDict
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -88,11 +89,22 @@ class AGTabs(QWidget):
         self.manage_sets_set_contains_label = QLabel("Set contains:")
         self.manage_sets_groups_label = QLabel()
         self.manage_sets_info_label = QLabel()
+        
+        self.manage_sets_save_changes_button = QPushButton("Save Changes")
+        self.manage_sets_save_changes_button.setVisible(False)
+        self.manage_sets_save_changes_button.setEnabled(False)
+        self.manage_sets_cancel_reorder_button = QPushButton("Cancel")
+        self.manage_sets_cancel_reorder_button.setVisible(False)
+
+        self.manage_sets_reorder_button_layout = QHBoxLayout()
+        self.manage_sets_reorder_button_layout.addWidget(self.manage_sets_save_changes_button)
+        self.manage_sets_reorder_button_layout.addWidget(self.manage_sets_cancel_reorder_button)
 
         self.manage_sets_label_layout = QVBoxLayout()
         self.manage_sets_label_layout.addWidget(self.manage_sets_set_contains_label)
         self.manage_sets_label_layout.addWidget(self.manage_sets_groups_label)
         self.manage_sets_label_layout.addWidget(self.manage_sets_info_label)
+        self.manage_sets_label_layout.addLayout(self.manage_sets_reorder_button_layout)
 
         self.manage_sets_top_layout = QHBoxLayout()
         self.manage_sets_top_layout.addLayout(self.manage_sets_list_layout)
@@ -130,6 +142,12 @@ class AGTabs(QWidget):
         self.manage_groups_edit_group_button.clicked.connect(self.open_edit_group_dialog)
         self.manage_groups_add_to_set_button.clicked.connect(self.open_add_to_set_dialog)
         self.manage_groups_delete_group_button.clicked.connect(self.confirm_delete_group)
+
+        self.manage_sets_list.clicked.connect(self.show_set_contents)
+        self.manage_sets_list.model().rowsMoved.connect(self.enable_manage_sets_save_changes_button)
+        self.manage_sets_reorder_sets_button.clicked.connect(self.reorder_sets)
+        self.manage_sets_save_changes_button.clicked.connect(self.save_set_order)
+        self.manage_sets_cancel_reorder_button.clicked.connect(self.exit_reorder_mode)
 
     def initialise_new_smiles_generator(self):
         self.smiles_generator = SmilesGenerator(self.enter_smiles_line_edit.text())
@@ -236,5 +254,32 @@ class AGTabs(QWidget):
                 if group in self.dict_manager.fg_sets_dict[set_name]:
                     self.dict_manager.fg_sets_dict[set_name].remove(group)
 
+    def show_set_contents(self):
+        current_set = self.manage_sets_list.currentItem().text()
+        self.manage_sets_groups_label.setText(", ".join(self.dict_manager.fg_sets_dict[current_set]))
 
+    def reorder_sets(self):
+        self.manage_sets_info_label.setText("Click and drag set names to reorder")
+        self.manage_sets_list.setDragDropMode(QAbstractItemView.InternalMove)
+        self.manage_sets_save_changes_button.setVisible(True)
+        self.manage_sets_cancel_reorder_button.setVisible(True)
 
+    def enable_manage_sets_save_changes_button(self):
+        self.manage_sets_save_changes_button.setEnabled(True)
+
+    def save_set_order(self):
+        list_items = []
+        for n in range(self.manage_sets_list.count()):
+            list_items.append(self.manage_sets_list.item(n))
+        new_set_order = [item.text() for item in list_items]
+        new_fg_sets_dict = OrderedDict((set_name, self.dict_manager.fg_sets_dict[set_name]) for set_name in new_set_order)
+        self.dict_manager.fg_sets_dict = new_fg_sets_dict
+        self.dict_manager.save_functional_group_sets()
+        self.manage_groups_table.populate_table()
+        self.exit_reorder_mode()
+
+    def exit_reorder_mode(self):
+        self.manage_sets_info_label.setText("")
+        self.manage_sets_list.setDragDropMode(QAbstractItemView.NoDragDrop)
+        self.manage_sets_save_changes_button.setVisible(False)
+        self.manage_sets_cancel_reorder_button.setVisible(False)
