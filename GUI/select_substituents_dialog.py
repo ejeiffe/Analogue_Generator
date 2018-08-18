@@ -59,6 +59,16 @@ class SelectSubsDialog(QDialog):
             self.new_set_saved = True
         self.close()
 
+class SelectSubsForSetDialog(SelectSubsDialog):
+
+    def __init__(self):
+        super().__init__(r_group = "New Set")
+
+        self.save_button.setVisible(False)
+
+
+
+
 
 
 

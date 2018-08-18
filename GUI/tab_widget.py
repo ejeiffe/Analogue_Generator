@@ -17,6 +17,8 @@ class AGTabs(QWidget):
         super().__init__()
         self.dict_manager = DictManager()
 
+        #Widgets and layouts
+        #Tabs
         self.tabs = QTabWidget()
         self.generate_analogues_tab = QWidget()
         self.manage_groups_tab = QWidget()
@@ -26,6 +28,7 @@ class AGTabs(QWidget):
         self.tabs.addTab(self.manage_groups_tab, "Manage Functional Groups")
         self.tabs.addTab(self.manage_sets_tab, "Manage Sets")
         
+        #Widgets and layouts for Generate Analogues Tab
         self.enter_smiles_label = QLabel("Enter SMILES string:")
         self.enter_smiles_line_edit = QLineEdit()
         self.submit_smiles_button = QPushButton("Submit")
@@ -52,6 +55,7 @@ class AGTabs(QWidget):
         self.generate_analogues_layout.addLayout(self.generate_analogues_button_layout)
         self.generate_analogues_tab.setLayout(self.generate_analogues_layout)
 
+        #Widgets and layouts for Manage Groups Tab
         self.manage_groups_instructions_label = QLabel("Ctrl + click to select multiple items. Double click to view SMILES.")
         self.manage_groups_table = SelectSubsTable()
 
@@ -77,6 +81,7 @@ class AGTabs(QWidget):
         self.manage_groups_layout.addLayout(self.manage_groups_button_layout)
         self.manage_groups_tab.setLayout(self.manage_groups_layout)
 
+        #Widgets and layouts for Manage Sets Tab
         self.manage_sets_list_label = QLabel("Functional Group Sets:")
         self.manage_sets_list = QListWidget()
         self.manage_sets_list.setFixedWidth(300)
@@ -130,21 +135,27 @@ class AGTabs(QWidget):
         self.manage_sets_layout.addLayout(self.manage_sets_button_layout)
         self.manage_sets_tab.setLayout(self.manage_sets_layout)
 
+        #Tab Widget layout
         self.tab_widget_layout = QVBoxLayout()
         self.tab_widget_layout.addWidget(self.tabs)
         self.setLayout(self.tab_widget_layout)
 
+        #Connections
+        #Connections for Generate Analogues Tab
         self.submit_smiles_button.clicked.connect(self.get_r_groups)
         self.generate_csv_button.clicked.connect(self.generate_csv_file)
 
+        #Connections for Manage Groups Tab
         self.manage_groups_table.clicked.connect(self.enable_manage_groups_buttons)
         self.manage_groups_create_new_button.clicked.connect(self.open_new_group_dialog)
         self.manage_groups_edit_group_button.clicked.connect(self.open_edit_group_dialog)
         self.manage_groups_add_to_set_button.clicked.connect(self.open_add_to_set_dialog)
         self.manage_groups_delete_group_button.clicked.connect(self.confirm_delete_group)
 
+        #Connections for Manage Sets Tab
         self.manage_sets_list.clicked.connect(self.show_set_contents)
         self.manage_sets_list.model().rowsMoved.connect(self.enable_manage_sets_save_changes_button)
+        self.manage_sets_create_new_button.clicked.connect(self.open_select_subs_for_set_dialog)
         self.manage_sets_reorder_sets_button.clicked.connect(self.reorder_sets)
         self.manage_sets_save_changes_button.clicked.connect(self.save_set_order)
         self.manage_sets_cancel_reorder_button.clicked.connect(self.exit_reorder_mode)
@@ -257,6 +268,18 @@ class AGTabs(QWidget):
     def show_set_contents(self):
         current_set = self.manage_sets_list.currentItem().text()
         self.manage_sets_groups_label.setText(", ".join(self.dict_manager.fg_sets_dict[current_set]))
+
+    def open_select_subs_for_set_dialog(self):
+        select_subs_for_set_dialog = SelectSubsForSetDialog()
+        select_subs_for_set_dialog.exec_()
+        if select_subs_for_set_dialog.new_set_saved:
+            self.dict_manager.load_functional_group_sets()
+            self.refresh_manage_sets_list()
+            self.manage_groups_table.populate_table()
+
+    def refresh_manage_sets_list(self):
+        self.manage_sets_list.clear()
+        self.manage_sets_list.addItems(self.dict_manager.fg_sets_dict.keys())
 
     def reorder_sets(self):
         self.manage_sets_info_label.setText("Click and drag set names to reorder")
