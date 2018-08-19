@@ -18,8 +18,6 @@ class SelectSubsTable(QTableWidget):
         self.doubleClicked.connect(self.view_smiles)
 
     def populate_table(self):
-        self.clear()
-        self.dict_manager.load_functional_group_sets()
         self.setRowCount(len(self.dict_manager.fg_sets_dict))
         self.setColumnCount(8)
         self.setVerticalHeaderLabels([key for key in self.dict_manager.fg_sets_dict.keys()])
@@ -35,6 +33,11 @@ class SelectSubsTable(QTableWidget):
                 self.setItem(row, column, table_item)
                 column += 1   
             row += 1
+
+    def refresh_table(self):
+        self.clear()
+        self.dict_manager.load_functional_group_sets()
+        self.populate_table()
 
     def view_smiles(self):
         group_name = self.currentItem().text()

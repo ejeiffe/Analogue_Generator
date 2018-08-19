@@ -37,8 +37,14 @@ class NewSetDialog(QDialog):
 
     def save_set(self):
         set_name = self.set_name_line_edit.text()
-        self.dict_manager.fg_sets_dict[set_name] = self.groups
-        self.dict_manager.save_functional_group_sets()
-        self.close()
+        if set_name in self.dict_manager.fg_sets_dict:
+            invalid_name_message = QMessageBox()
+            invalid_name_message.setWindowTitle("Invalid Set Name")
+            invalid_name_message.setText(f"The group '{set_name}' already exists. Please choose another name")
+            invalid_name_message.exec_()
+        else:
+            self.dict_manager.fg_sets_dict[set_name] = self.groups
+            self.dict_manager.save_functional_group_sets()
+            self.close()
 
         
