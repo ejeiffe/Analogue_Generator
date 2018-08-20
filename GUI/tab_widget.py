@@ -10,6 +10,7 @@ from smiles_generator import *
 from select_substituents_dialog import *
 from new_group_dialog import *
 from edit_group_dialog import *
+from edit_set_dialog import *
 
 class AGTabs(QWidget):
 
@@ -92,8 +93,8 @@ class AGTabs(QWidget):
         self.manage_sets_list_layout.addWidget(self.manage_sets_list)
 
         self.manage_sets_set_contains_label = QLabel("Set contains:")
-        self.manage_sets_groups_label = QLabel()
-        self.manage_sets_info_label = QLabel()
+        self.manage_sets_groups_label = QLabel(wordWrap = True)
+        self.manage_sets_info_label = QLabel(wordWrap = True)
         
         self.manage_sets_save_changes_button = QPushButton("Save Changes")
         self.manage_sets_save_changes_button.setVisible(False)
@@ -156,7 +157,8 @@ class AGTabs(QWidget):
         self.manage_sets_list.clicked.connect(self.show_set_contents)
         self.manage_sets_list.clicked.connect(self.enable_manage_sets_buttons)
         self.manage_sets_list.model().rowsMoved.connect(self.enable_manage_sets_save_changes_button)
-        self.manage_sets_create_new_button.clicked.connect(self.open_select_subs_for_set_dialog)
+        self.manage_sets_create_new_button.clicked.connect(self.open_selection_dialog_new_set)
+        self.manage_sets_edit_set_button.clicked.connect(self.open_edit_set_dialog)
         self.manage_sets_reorder_sets_button.clicked.connect(self.reorder_sets)
         self.manage_sets_save_changes_button.clicked.connect(self.save_set_order)
         self.manage_sets_cancel_reorder_button.clicked.connect(self.exit_reorder_mode)
@@ -230,6 +232,7 @@ class AGTabs(QWidget):
             self.dict_manager.load_functional_groups()
             self.dict_manager.load_functional_group_sets()
             self.manage_groups_table.refresh_table()
+            self.refresh_manage_sets_list()
 
     def open_edit_group_dialog(self):
         group_name = self.manage_groups_table.currentItem().text()
@@ -257,8 +260,6 @@ class AGTabs(QWidget):
         if confirm == QMessageBox.Yes:
             groups = [item.text() for item in self.manage_groups_table.selectedItems()]
             self.delete_groups(groups)
-            self.dict_manager.save_functional_groups()
-            self.dict_manager.save_functional_group_sets()
             self.manage_groups_table.refresh_table()
     
     def delete_groups(self, groups):
@@ -267,19 +268,20 @@ class AGTabs(QWidget):
             for set_name in self.dict_manager.fg_sets_dict:
                 if group in self.dict_manager.fg_sets_dict[set_name]:
                     self.dict_manager.fg_sets_dict[set_name].remove(group)
+        self.dict_manager.save_functional_groups()
+        self.dict_manager.save_functional_group_sets()
 
     #Methods connected to Manage Sets Tab
     def enable_manage_sets_buttons(self):
         self.manage_sets_edit_set_button.setEnabled(True)
-        if self.manage_sets_list.currentItem().text() not in fg_sets_dict:
-            self.manage_sets_delete_set_button.setEnabled(True)
+        self.manage_sets_delete_set_button.setEnabled(True)
 
     def show_set_contents(self):
         current_set = self.manage_sets_list.currentItem().text()
         self.manage_sets_groups_label.setText(", ".join(self.dict_manager.fg_sets_dict[current_set]))
 
-    def open_select_subs_for_set_dialog(self):
-        select_subs_for_set_dialog = SelectSubsForSetDialog()
+    def open_selection_dialog_new_set(self):
+        select_subs_for_set_dialog = SelectSubsForNewSetDialog()
         select_subs_for_set_dialog.exec_()
         if select_subs_for_set_dialog.new_set_saved:
             self.dict_manager.load_functional_group_sets()
@@ -290,6 +292,35 @@ class AGTabs(QWidget):
         self.manage_sets_list.clear()
         self.manage_sets_list.addItems(self.dict_manager.fg_sets_dict.keys())
         self.manage_sets_groups_label.setText("")
+
+    def open_edit_set_dialog(self):
+        set_name = self.manage_sets_list.currentItem().text()
+        edit_set_dialog = EditSetDialog(set_name)
+        edit_set_dialog.exec_()
+        self.dict_manager.load_functional_group_sets()
+        if edit_set_dialog.new_groups != edit_set_dialog.groups:
+            lost_groups = []
+            for group in edit_set_dialog.groups:
+                if group not in edit_set_dialog.new_groups:
+                    lost_groups.append(group)
+            if len(lost_groups) > 0:
+                unique_groups = []
+            for group in lost_groups:
+                unique = True
+                for key in self.dict_manager.fg_sets_dict.keys():
+                    if group in self.dict_manager.fg_sets_dict[key]:
+                        unique = False
+                        break
+                if unique:
+                    unique_groups.append(group)
+            if len(unique_groups) > 0:
+                self.handle_unique_groups(unique_groups)
+            else:
+                self.manage_groups_table.refresh_table()
+                self.refresh_manage_sets_list()
+        else:
+            self.manage_groups_table.refresh_table()
+            self.refresh_manage_sets_list()
 
     def reorder_sets(self):
         self.manage_sets_info_label.setText("Click and drag set names to reorder")
@@ -348,9 +379,9 @@ class AGTabs(QWidget):
             else:
                 add_to_set_dialog = AddToSetDialog([group])
                 add_to_set_dialog.exec_()
-                self.dict_manager.load_functional_group_sets()
-                self.manage_groups_table.refresh_table()
-                self.refresh_manage_sets_list()
+            self.dict_manager.load_functional_group_sets()
+            self.manage_groups_table.refresh_table()
+            self.refresh_manage_sets_list()
 
     def confirm_delete_set(self):
         confirm_delete_message = QMessageBox()

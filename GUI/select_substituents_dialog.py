@@ -59,12 +59,24 @@ class SelectSubsDialog(QDialog):
             self.new_set_saved = True
         self.close()
 
-class SelectSubsForSetDialog(SelectSubsDialog):
+class SelectSubsForNewSetDialog(SelectSubsDialog):
 
     def __init__(self):
         super().__init__(r_group = "New Set")
 
         self.save_button.setVisible(False)
+
+class SelectSubsEditSetDialog(SelectSubsDialog):
+
+    def __init__(self, set_name):
+        super().__init__(r_group = None)
+        self.set_name = set_name
+        
+        self.setWindowTitle(f"Select Groups for {self.set_name}")
+
+        self.save_as_set_button.setVisible(False)
+
+
 
 
 
