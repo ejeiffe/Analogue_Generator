@@ -13,6 +13,7 @@ class EditSetDialog(QDialog):
         self.dict_manager = DictManager()
         self.groups = self.dict_manager.fg_sets_dict[set_name]
         self.new_groups = self.groups
+        self.set_changed = False
 
         self.setWindowTitle("Edit Set")
 
@@ -65,4 +66,5 @@ class EditSetDialog(QDialog):
         else:
             self.dict_manager.fg_sets_dict[self.set_name] = self.new_groups
         self.dict_manager.save_functional_group_sets()
+        self.set_changed = True
         self.close()

@@ -9,6 +9,7 @@ class AddToSetDialog(QDialog):
         super().__init__()
         self.groups = groups
         self.dict_manager = DictManager()
+        self.new_set_saved = False
 
         self.setWindowTitle("Add Group(s) to Set")
 
@@ -43,6 +44,8 @@ class AddToSetDialog(QDialog):
     def open_new_set_dialog(self):
         new_set_dialog = NewSetDialog(self.groups)
         new_set_dialog.exec_()
+        if new_set_dialog.new_set_saved:
+            self.new_set_saved = True
         self.close()
 
 

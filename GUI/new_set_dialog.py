@@ -8,6 +8,7 @@ class NewSetDialog(QDialog):
         super().__init__()
         self.groups = groups
         self.dict_manager = DictManager()
+        self.new_set_saved = False
 
         self.setWindowTitle("New Set")
         
@@ -45,6 +46,7 @@ class NewSetDialog(QDialog):
         else:
             self.dict_manager.fg_sets_dict[set_name] = self.groups
             self.dict_manager.save_functional_group_sets()
+            self.new_set_saved = True
             self.close()
 
         
