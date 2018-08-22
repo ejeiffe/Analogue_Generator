@@ -6,7 +6,7 @@ class SmilesGenerator:
         #Ensure that all R groups are followed by a number
         self.input_smiles = input_smiles.replace('R]', 'R0]')
 
-        self.r_groups = re.findall("(R\d)", self.input_smiles)
+        self.r_groups = list(set(re.findall("(R\d)", self.input_smiles)))
 
         self.input_split = re.split("(R\d)", self.input_smiles)
         self.input_split = [x for x in self.input_split if "R" not in x]

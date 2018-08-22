@@ -17,6 +17,7 @@ class AGTabs(QWidget):
     def __init__(self):
         super().__init__()
         self.dict_manager = DictManager()
+        self.smiles_generator = None
 
         #Widgets and layouts
         #Tabs
@@ -33,6 +34,7 @@ class AGTabs(QWidget):
         self.enter_smiles_label = QLabel("Enter SMILES string:")
         self.enter_smiles_line_edit = QLineEdit()
         self.submit_smiles_button = QPushButton("Submit")
+        self.clear_smiles_input_button = QPushButton("Clear")
         self.generate_csv_button = QPushButton("Generate CSV File")
         self.generate_csv_button.setEnabled(False)
         self.generate_analogues_exit_button = QPushButton("Exit")
@@ -49,6 +51,7 @@ class AGTabs(QWidget):
         self.generate_analogues_top_layout.addWidget(self.enter_smiles_label)
         self.generate_analogues_top_layout.addWidget(self.enter_smiles_line_edit)
         self.generate_analogues_top_layout.addWidget(self.submit_smiles_button)
+        self.generate_analogues_top_layout.addWidget(self.clear_smiles_input_button)
 
         self.generate_analogues_layout = QVBoxLayout()
         self.generate_analogues_layout.addLayout(self.generate_analogues_top_layout)
@@ -144,6 +147,7 @@ class AGTabs(QWidget):
         #Connections
         #Connections for Generate Analogues Tab
         self.submit_smiles_button.clicked.connect(self.get_r_groups)
+        self.clear_smiles_input_button.clicked.connect(self.clear_smiles_input)
         self.generate_csv_button.clicked.connect(self.generate_csv_file)
 
         #Connections for Manage Groups Tab
@@ -174,16 +178,42 @@ class AGTabs(QWidget):
         self.r_group_rows = {}
 
     def get_r_groups(self):
-        self.initialise_new_smiles_generator()
-        r_groups = sorted(self.smiles_generator.r_groups)
-        row = 1
-        for r_group in r_groups:
-            self.r_group_rows[r_group] = row
-            self.r_group_select_buttons[r_group] = QPushButton("Select")
-            self.r_group_select_buttons[r_group].clicked.connect(lambda _, r=r_group: self.open_selection_dialog(r_group =r))
-            self.r_groups_layout.addWidget(QLabel(r_group),row,0)
-            self.r_groups_layout.addWidget(self.r_group_select_buttons[r_group],row,2)
-            row += 1
+        try:
+            self.initialise_new_smiles_generator()
+        except:
+            self.show_invalid_smiles_message()
+        if self.smiles_generator:
+            if len(self.smiles_generator.r_groups) == 0:
+                self.show_invalid_smiles_message()
+            else:
+                r_groups = sorted(self.smiles_generator.r_groups)
+                row = 1
+                for r_group in r_groups:
+                    self.r_group_rows[r_group] = row
+                    self.r_group_select_buttons[r_group] = QPushButton("Select")
+                    self.r_group_select_buttons[r_group].clicked.connect(lambda _, r=r_group: self.open_selection_dialog(r_group =r))
+                    self.r_groups_layout.addWidget(QLabel(r_group),row,0)
+                    self.r_groups_layout.addWidget(self.r_group_select_buttons[r_group],row,2)
+                    row += 1
+
+    def show_invalid_smiles_message(self):
+        invalid_smiles_message = QMessageBox()
+        invalid_smiles_message.setWindowTitle("Invalid SMILES string")
+        invalid_smiles_message.setText("Please enter a valid SMILES string, with R groups enclosed in square brackets.")
+        invalid_smiles_message.exec_()
+
+    def clear_smiles_input(self):
+        self.enter_smiles_line_edit.setText("")
+        row_count = self.r_groups_layout.rowCount()
+        if row_count > 1:
+            for i in range(1, row_count):
+                for j in range(3):
+                    item = self.r_groups_layout.itemAtPosition(i,j)
+                    if item:
+                        widget = item.widget()
+                        self.r_groups_layout.removeWidget(widget)
+                        widget.deleteLater()
+
             
     def open_selection_dialog(self, r_group):
         select_subs_dialog = SelectSubsDialog(r_group)
@@ -191,7 +221,13 @@ class AGTabs(QWidget):
         if select_subs_dialog.substituents:
             self.r_group_substituents[r_group] = select_subs_dialog.substituents
             substituents_label = ", ".join(self.r_group_substituents[r_group])
-            self.r_groups_layout.addWidget(QLabel(substituents_label, wordWrap = True),self.r_group_rows[r_group],1)
+            row = self.r_group_rows[r_group]
+            item = self.r_groups_layout.itemAtPosition(row, 1)
+            if item:
+                widget = item.widget()
+                self.r_groups_layout.removeWidget(widget)
+                widget.deleteLater()
+            self.r_groups_layout.addWidget(QLabel(substituents_label, wordWrap = True),row,1)
         if select_subs_dialog.new_set_saved:
             self.dict_manager.load_functional_group_sets()
         if len(self.r_group_substituents) == len(self.smiles_generator.r_groups):
@@ -436,7 +472,6 @@ class AGTabs(QWidget):
             self.manage_groups_table.refresh_table()
             self.refresh_manage_sets_list()
             
-
     def confirm_delete_set(self):
         confirm_delete_message = QMessageBox()
         confirm_delete_message.setWindowTitle("Delete set")
