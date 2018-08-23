@@ -11,8 +11,8 @@ class AGMainWindow(QMainWindow):
         super().__init__()
         
         self.setWindowTitle("Analogue Generator")
-        self.setMinimumHeight(300)
-        self.setMinimumWidth(500)
+        self.setFixedHeight(500)
+        self.setFixedWidth(800)
 
         self.central_widget = AGTabs()
         self.setCentralWidget(self.central_widget)

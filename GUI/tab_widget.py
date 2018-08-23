@@ -39,12 +39,17 @@ class AGTabs(QWidget):
         self.generate_csv_button.setEnabled(False)
         self.generate_analogues_exit_button = QPushButton("Exit")
 
+        self.r_groups_box = QGroupBox()
         self.r_groups_layout = QGridLayout()
-        self.r_groups_layout.addWidget(QLabel("R Group"),0,0)
-        self.r_groups_layout.addWidget(QLabel("Substituents"),0,1)
+        self.r_groups_layout.setVerticalSpacing(8)
+        self.r_groups_layout.addWidget(QLabel("<u>R Group</u>"),0,0)
+        self.r_groups_layout.addWidget(QLabel("<u>Substituents</u>"),0,1)
+        self.r_groups_layout.addWidget(QLabel(" "), 0, 2)
+        self.r_groups_layout.setAlignment(Qt.AlignTop)
+        self.r_groups_box.setLayout(self.r_groups_layout)
 
         self.generate_analogues_button_layout = QHBoxLayout()
-        self.generate_analogues_button_layout.addWidget(self.generate_csv_button)
+        self.generate_analogues_button_layout.addWidget(self.generate_csv_button, 0, Qt.AlignLeft)
         self.generate_analogues_button_layout.addWidget(self.generate_analogues_exit_button, 0, Qt.AlignRight)
         
         self.generate_analogues_top_layout = QHBoxLayout()
@@ -55,12 +60,12 @@ class AGTabs(QWidget):
 
         self.generate_analogues_layout = QVBoxLayout()
         self.generate_analogues_layout.addLayout(self.generate_analogues_top_layout)
-        self.generate_analogues_layout.addLayout(self.r_groups_layout)
+        self.generate_analogues_layout.addWidget(self.r_groups_box)
         self.generate_analogues_layout.addLayout(self.generate_analogues_button_layout)
         self.generate_analogues_tab.setLayout(self.generate_analogues_layout)
 
         #Widgets and layouts for Manage Groups Tab
-        self.manage_groups_instructions_label = QLabel("Ctrl + click to select multiple items. Double click to view SMILES.")
+        self.manage_groups_instructions_label = QLabel("Click row heading to select functional group set. Ctrl + click or Shift + click to select multiple items. Double click functional group name to view SMILES.")
         self.manage_groups_table = SelectSubsTable()
 
         self.manage_groups_create_new_button = QPushButton("Create New Group")
@@ -94,31 +99,46 @@ class AGTabs(QWidget):
         self.manage_sets_list_layout = QVBoxLayout()
         self.manage_sets_list_layout.addWidget(self.manage_sets_list_label)
         self.manage_sets_list_layout.addWidget(self.manage_sets_list)
+        self.manage_sets_list_layout.setAlignment(Qt.AlignLeft)
 
-        self.manage_sets_set_contains_label = QLabel("Set contains:")
+        self.manage_sets_set_contains_label = QLabel("<u>Set contains:</u>")
+        self.manage_sets_set_contains_label.setFixedWidth(500)
         self.manage_sets_groups_label = QLabel(wordWrap = True)
-        self.manage_sets_info_label = QLabel(wordWrap = True)
         
-        self.manage_sets_save_changes_button = QPushButton("Save Changes")
-        self.manage_sets_save_changes_button.setVisible(False)
-        self.manage_sets_save_changes_button.setEnabled(False)
-        self.manage_sets_cancel_reorder_button = QPushButton("Cancel")
-        self.manage_sets_cancel_reorder_button.setVisible(False)
-
-        self.manage_sets_reorder_button_layout = QHBoxLayout()
-        self.manage_sets_reorder_button_layout.addWidget(self.manage_sets_save_changes_button)
-        self.manage_sets_reorder_button_layout.addWidget(self.manage_sets_cancel_reorder_button)
-
+        
+        
+        self.manage_sets_label_box = QGroupBox()
         self.manage_sets_label_layout = QVBoxLayout()
         self.manage_sets_label_layout.addWidget(self.manage_sets_set_contains_label)
         self.manage_sets_label_layout.addWidget(self.manage_sets_groups_label)
-        self.manage_sets_label_layout.addWidget(self.manage_sets_info_label)
-        self.manage_sets_label_layout.addLayout(self.manage_sets_reorder_button_layout)
+        self.manage_sets_label_box.setLayout(self.manage_sets_label_layout)
+        self.manage_sets_label_box.setMaximumHeight(150)
+        
+        self.manage_sets_info_label = QLabel("Click and drag set names to reorder")
+        self.manage_sets_save_changes_button = QPushButton("Save Changes")
+        self.manage_sets_save_changes_button.setEnabled(False)
+        self.manage_sets_cancel_reorder_button = QPushButton("Cancel")
+
+        self.manage_sets_reorder_button_layout = QHBoxLayout()
+        self.manage_sets_reorder_button_layout.addWidget(self.manage_sets_save_changes_button, 0)
+        self.manage_sets_reorder_button_layout.addWidget(self.manage_sets_cancel_reorder_button, 0)
+
+        self.manage_sets_reorder_box = QGroupBox()
+        self.manage_sets_reorder_layout = QVBoxLayout()
+        self.manage_sets_reorder_layout.addWidget(self.manage_sets_info_label)
+        self.manage_sets_reorder_layout.addLayout(self.manage_sets_reorder_button_layout)
+        self.manage_sets_reorder_box.setLayout(self.manage_sets_reorder_layout)
+        self.manage_sets_reorder_box.setMaximumHeight(100)
+        self.manage_sets_reorder_box.setVisible(False)
+
+        self.manage_sets_top_right_layout = QVBoxLayout()
+        self.manage_sets_top_right_layout.addWidget(self.manage_sets_label_box)
+        self.manage_sets_top_right_layout.addWidget(self.manage_sets_reorder_box)
 
         self.manage_sets_top_layout = QHBoxLayout()
         self.manage_sets_top_layout.addLayout(self.manage_sets_list_layout)
-        self.manage_sets_top_layout.addLayout(self.manage_sets_label_layout)
-
+        self.manage_sets_top_layout.addLayout(self.manage_sets_top_right_layout)
+        
         self.manage_sets_create_new_button = QPushButton("Create New Set")
         self.manage_sets_edit_set_button = QPushButton("Edit Set")
         self.manage_sets_edit_set_button.setEnabled(False)
@@ -163,7 +183,7 @@ class AGTabs(QWidget):
         self.manage_sets_list.model().rowsMoved.connect(self.enable_manage_sets_save_changes_button)
         self.manage_sets_create_new_button.clicked.connect(self.open_selection_dialog_new_set)
         self.manage_sets_edit_set_button.clicked.connect(self.open_edit_set_dialog)
-        self.manage_sets_reorder_sets_button.clicked.connect(self.reorder_sets)
+        self.manage_sets_reorder_sets_button.clicked.connect(self.enter_reorder_mode)
         self.manage_sets_save_changes_button.clicked.connect(self.save_set_order)
         self.manage_sets_cancel_reorder_button.clicked.connect(self.exit_reorder_mode)
         self.manage_sets_delete_set_button.clicked.connect(self.confirm_delete_set)
@@ -192,8 +212,8 @@ class AGTabs(QWidget):
                     self.r_group_rows[r_group] = row
                     self.r_group_select_buttons[r_group] = QPushButton("Select")
                     self.r_group_select_buttons[r_group].clicked.connect(lambda _, r=r_group: self.open_selection_dialog(r_group =r))
-                    self.r_groups_layout.addWidget(QLabel(r_group),row,0)
-                    self.r_groups_layout.addWidget(self.r_group_select_buttons[r_group],row,2)
+                    self.r_groups_layout.addWidget(QLabel(r_group),row,0, Qt.AlignTop)
+                    self.r_groups_layout.addWidget(self.r_group_select_buttons[r_group],row,2, Qt.AlignTop)
                     row += 1
 
     def show_invalid_smiles_message(self):
@@ -399,11 +419,9 @@ class AGTabs(QWidget):
                 self.refresh_manage_sets_list()
             self.show_save_confirm_message()
 
-    def reorder_sets(self):
-        self.manage_sets_info_label.setText("Click and drag set names to reorder")
+    def enter_reorder_mode(self):
+        self.manage_sets_reorder_box.setVisible(True)
         self.manage_sets_list.setDragDropMode(QAbstractItemView.InternalMove)
-        self.manage_sets_save_changes_button.setVisible(True)
-        self.manage_sets_cancel_reorder_button.setVisible(True)
 
     def enable_manage_sets_save_changes_button(self):
         self.manage_sets_save_changes_button.setEnabled(True)
@@ -421,10 +439,9 @@ class AGTabs(QWidget):
         self.show_save_confirm_message()
 
     def exit_reorder_mode(self):
-        self.manage_sets_info_label.setText("")
+        self.manage_sets_reorder_box.setVisible(False)
         self.manage_sets_list.setDragDropMode(QAbstractItemView.NoDragDrop)
-        self.manage_sets_save_changes_button.setVisible(False)
-        self.manage_sets_cancel_reorder_button.setVisible(False)
+        self.refresh_manage_sets_list()
 
     def delete_set(self):
         set_name = self.manage_sets_list.currentItem().text()
