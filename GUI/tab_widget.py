@@ -143,7 +143,7 @@ class AGTabs(QWidget):
         self.manage_sets_edit_set_button = QPushButton("Edit Set")
         self.manage_sets_edit_set_button.setEnabled(False)
         self.manage_sets_reorder_sets_button = QPushButton("Reorder Sets")
-        self.manage_sets_delete_set_button = QPushButton("Delete Set(s)")
+        self.manage_sets_delete_set_button = QPushButton("Delete Set")
         self.manage_sets_delete_set_button.setEnabled(False)
         self.manage_sets_exit_button = QPushButton("Exit")
 

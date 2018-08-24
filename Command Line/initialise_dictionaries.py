@@ -1,4 +1,4 @@
-import collections
+from collections import OrderedDict
 
 functional_groups = {'H': ('[H]',), 'Me': ('C',), 'Et': ('CC',), 'n-Pr': ('CCC',), 'i-Pr': ('C(C)(C)',), 'n-Bu': ('CCCC',), 'sec-Bu': ('C(C)(CC)',), 'i-Bu': ('CC(C)C',), 't-Bu': ('C(C)(C)(C)',),
                     'OH': ('O',), 'OMe': ('O(C)',), 'OEt': ('O(CC)',),
@@ -12,7 +12,7 @@ functional_groups = {'H': ('[H]',), 'Me': ('C',), 'Et': ('CC',), 'n-Pr': ('CCC',
                     '2-Pyrrole': ('C1=CC=CN1', 'N1C=CC=C1'), '3-Pyrrole': ('C1=CNC=C1',), '2-Furan': ('C1=CC=CO1', 'O1C=CC=C1'), '3-Furan': ('C1=COC=C1',), '2-Thiophene': ('C1=CC=CS1', 'S1C=CC=C1'), '3-Thiophene': ('C1=CSC=C1',),
                     'N-Imidazole': ('N1C=NC=C1', 'C1=CN=CN1'),'2-(1H-Imidazole)':('C1=NC=CN1', 'N1C=CN=C1'),'4-(1H-Imidazole)': ('C1=CNC=N1', 'N1=CNC=C1'), '5-(1H-Imidazole)': ('C1=CN=CN1', 'N1C=NC=C1'), '2-(N-Me-Imidazole)':('C1=NC=CN(C)1','N(C)1C=CN=C1'),'4-(N-Me-Imidazole)': ('C1=CN(C)C=N1', 'N1=CN(C)C=C1'), '5-(N-Me-Imidazole)': ('C1=CN=CN(C)1', 'N(C)1C=NC=C1')}
 
-fg_sets_dict = collections.OrderedDict([('Hydrogen', ['H']),
+fg_sets_dict = OrderedDict([('Hydrogen', ['H']),
                     ('Alkyl', ['Me', 'Et', 'n-Pr', 'i-Pr', 'n-Bu', 'sec-Bu', 'i-Bu', 't-Bu']),
                     ('Oxy', ['OH', 'OMe', 'OEt']),
                     ('Amino', ['NH2', 'NHMe', 'N(Me)2']),

@@ -12,6 +12,7 @@ class SelectSubsTable(QTableWidget):
         self.horizontalHeader().setVisible(False)
 
         self.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
+        self.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
         self.populate_table()
 

@@ -6,7 +6,7 @@ class SmilesGenerator:
         #Ensure that all R groups are followed by a number
         self.input_smiles = input_smiles.replace('R]', 'R0]')
 
-        self.r_groups = re.findall("(R\d)", self.input_smiles)
+        self.r_groups = list(set(re.findall("(R\d)", self.input_smiles)))
 
         self.input_split = re.split("(R\d)", self.input_smiles)
         self.input_split = [x for x in self.input_split if "R" not in x]
@@ -41,7 +41,7 @@ class SmilesGenerator:
             iterations //= len(r_group_substitutions[r])
 
     def generate_output_list(self):
-        self.output = []
+        output = []
         # Splices together R groups from the substitution lists with the remaining SMILES fragments from the input string
         for i in range(len(self.substitutions_list)):
             new_smiles = ''
@@ -50,5 +50,6 @@ class SmilesGenerator:
                 new_smiles += self.substitutions_list[i][j]
             new_smiles += self.input_split[-1]
             new_smiles = new_smiles.replace('Q','')
-            self.output.append([new_smiles])
+            output.append([new_smiles])
+        return output
 

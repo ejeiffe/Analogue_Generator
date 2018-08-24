@@ -13,7 +13,7 @@ class SelectSubsDialog(QDialog):
 
         self.setWindowTitle(f"Select Substituents for {self.r_group}")
 
-        self.instructions_label = QLabel("Ctrl + click to select multiple items. Double click to view SMILES.")
+        self.instructions_label = QLabel("Click row heading to select functional group set. Ctrl + click or Shift + click to select multiple items. Double click functional group name to view SMILES.")
 
         self.select_subs_table = SelectSubsTable()
 
@@ -44,7 +44,7 @@ class SelectSubsDialog(QDialog):
         self.save_as_set_button.setEnabled(True)
 
     def get_substituents(self):
-        self.substituents = [item.text() for item in self.select_subs_table.selectedItems()]
+        self.substituents = [item.text() for item in self.select_subs_table.selectedItems() if item.text() != ""]
         self.substituents = list(set(self.substituents))
         
     def save_substituents(self):

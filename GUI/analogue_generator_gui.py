@@ -11,11 +11,11 @@ class AGMainWindow(QMainWindow):
         super().__init__()
         
         self.setWindowTitle("Analogue Generator")
-        self.setFixedHeight(500)
-        self.setFixedWidth(800)
-
+        
         self.central_widget = AGTabs()
         self.setCentralWidget(self.central_widget)
+
+        self.resize(800, 500)
 
         self.central_widget.generate_analogues_exit_button.clicked.connect(self.close)
         self.central_widget.manage_groups_exit_button.clicked.connect(self.close)
