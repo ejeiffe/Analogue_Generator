@@ -6,13 +6,7 @@ class SmilesGenerator:
         #Ensure that all R groups are followed by a number
         self.input_smiles = input_smiles.replace('R]', 'R0]')
 
-        self.r_groups = list(set(re.findall("(R\d)", self.input_smiles)))
-
-        self.input_split = re.split("(R\d)", self.input_smiles)
-        self.input_split = [x for x in self.input_split if "R" not in x]
-        #Replacing the [] around R groups in the original SMILES with a character that can be stripped out later
-        self.input_split = [x[:-1] + 'Q' if x[-1] in ('[', ']') else x for x in self.input_split]
-        self.input_split = ['Q' + x[1:] if x[0] == ']' else x for x in self.input_split]
+        self.r_groups = list(set(re.findall("(R\d)", self.input_smiles)))        
         
     def generate_substitutions_list(self, r_group_substitutions):
         total_iterations = 1
@@ -40,7 +34,17 @@ class SmilesGenerator:
             sub_index += 1
             iterations //= len(r_group_substitutions[r])
 
+    def prepare_input_split (self):    
+        self.input_split = re.split("(R\d)", self.input_smiles)
+        self.input_split = [x for x in self.input_split if "R" not in x]
+        #Replacing the [] around R groups in the original SMILES with a character that can be stripped out later
+        self.input_split = [x[:-1] + 'Q' if x[-1] in ('[', ']') else x for x in self.input_split]
+        self.input_split = ['Q' + x[1:] if x[0] == ']' else x for x in self.input_split]
+        
+
+
     def generate_output_list(self):
+        self.prepare_input_split()
         output = []
         # Splices together R groups from the substitution lists with the remaining SMILES fragments from the input string
         for i in range(len(self.substitutions_list)):

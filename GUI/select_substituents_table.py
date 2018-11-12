@@ -27,8 +27,8 @@ class SelectSubsTable(QTableWidget):
         for key in self.dict_manager.fg_sets_dict.keys():
             column = 0
             for item in self.dict_manager.fg_sets_dict[key]:
-                if column > column_count:
-                    column_count = column
+                if column >= column_count:
+                    column_count = column + 1
                     self.setColumnCount(column_count)
                 table_item = QTableWidgetItem(item)
                 self.setItem(row, column, table_item)
