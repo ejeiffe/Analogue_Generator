@@ -206,7 +206,8 @@ class AGTabs(QWidget):
             if len(self.smiles_generator.r_groups) == 0:
                 self.show_invalid_smiles_message()
             else:
-                r_groups = sorted(self.smiles_generator.r_groups)
+                r_groups = self.smiles_generator.r_groups
+                r_groups = sorted(r_groups)
                 row = 1
                 for r_group in r_groups:
                     self.r_group_rows[r_group] = row
