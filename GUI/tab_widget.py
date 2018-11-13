@@ -206,7 +206,7 @@ class AGTabs(QWidget):
             if len(self.smiles_generator.r_groups) == 0:
                 self.show_invalid_smiles_message()
             else:
-                r_groups = self.smiles_generator.r_groups
+                r_groups = set(self.smiles_generator.r_groups)
                 r_groups = sorted(r_groups)
                 row = 1
                 for r_group in r_groups:
@@ -225,6 +225,7 @@ class AGTabs(QWidget):
 
     def clear_smiles_input(self):
         self.enter_smiles_line_edit.setText("")
+        self.generate_csv_button.setEnabled(False)
         row_count = self.r_groups_layout.rowCount()
         if row_count > 1:
             for i in range(1, row_count):
@@ -251,8 +252,8 @@ class AGTabs(QWidget):
             self.r_groups_layout.addWidget(QLabel(substituents_label, wordWrap = True),row,1)
         if select_subs_dialog.new_set_saved:
             self.dict_manager.load_functional_group_sets()
-        if len(self.r_group_substituents) == len(self.smiles_generator.r_groups):
-            self.generate_csv_button.setEnabled(True)    
+        if len(self.r_group_substituents) == len(self.r_group_rows):
+            self.generate_csv_button.setEnabled(True)   
 
     def get_r_group_smiles(self):
         self.r_group_smiles = {}
