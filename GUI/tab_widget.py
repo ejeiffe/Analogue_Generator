@@ -166,7 +166,7 @@ class AGTabs(QWidget):
 
         #Connections
         #Connections for Generate Analogues Tab
-        self.submit_smiles_button.clicked.connect(self.get_r_groups)
+        self.submit_smiles_button.clicked.connect(self.initialise_r_group_layout)
         self.clear_smiles_input_button.clicked.connect(self.clear_smiles_input)
         self.generate_csv_button.clicked.connect(self.generate_csv_file)
 
@@ -188,34 +188,41 @@ class AGTabs(QWidget):
         self.manage_sets_cancel_reorder_button.clicked.connect(self.exit_reorder_mode)
         self.manage_sets_delete_set_button.clicked.connect(self.confirm_delete_set)
 
-    #Methods connected to Generate Analogues Tab
-    def initialise_new_smiles_generator(self):
-        self.smiles_generator = SmilesGenerator(self.enter_smiles_line_edit.text())
-        self.r_group_substituents = {}
-        self.r_group_select_buttons = {}
-        self.r_group_rows = {}
-        self.r_group_select_buttons = {}
-        self.r_group_rows = {}
-
-    def get_r_groups(self):
+    #Methods connected to Generate Analogues Tab      
+    def initialise_smiles_generator(self):
         try:
-            self.initialise_new_smiles_generator()
+            self.smiles_generator = SmilesGenerator(self.enter_smiles_line_edit.text())
         except:
             self.show_invalid_smiles_message()
+            return False
         if self.smiles_generator:
-            if len(self.smiles_generator.r_groups) == 0:
-                self.show_invalid_smiles_message()
-            else:
-                r_groups = set(self.smiles_generator.r_groups)
-                r_groups = sorted(r_groups)
-                row = 1
-                for r_group in r_groups:
-                    self.r_group_rows[r_group] = row
-                    self.r_group_select_buttons[r_group] = QPushButton("Select")
-                    self.r_group_select_buttons[r_group].clicked.connect(lambda _, r=r_group: self.open_selection_dialog(r_group =r))
-                    self.r_groups_layout.addWidget(QLabel(r_group),row,0, Qt.AlignTop)
-                    self.r_groups_layout.addWidget(self.r_group_select_buttons[r_group],row,2, Qt.AlignTop)
-                    row += 1
+            return True
+
+    def get_r_groups(self):
+        r_groups = self.smiles_generator.get_r_groups()
+        if len(r_groups) == 0:
+            self.show_invalid_smiles_message()
+            return False
+        else:
+            self.r_group_selections = {}
+            return r_groups
+
+    def initialise_r_group_layout(self):
+        if self.initialise_smiles_generator():
+            r_groups = self.get_r_groups()
+        if r_groups:        
+            self.r_group_select_buttons = {}
+            self.r_group_rows = {}
+            self.r_group_select_buttons = {}
+            self.r_group_rows = {}
+            row = 1
+            for r_group in r_groups:
+                self.r_group_rows[r_group] = row
+                self.r_group_select_buttons[r_group] = QPushButton("Select")
+                self.r_group_select_buttons[r_group].clicked.connect(lambda _, r=r_group: self.open_selection_dialog(r_group =r))
+                self.r_groups_layout.addWidget(QLabel(r_group),row,0, Qt.AlignTop)
+                self.r_groups_layout.addWidget(self.r_group_select_buttons[r_group],row,2, Qt.AlignTop)
+                row += 1
 
     def show_invalid_smiles_message(self):
         invalid_smiles_message = QMessageBox()
@@ -240,33 +247,28 @@ class AGTabs(QWidget):
     def open_selection_dialog(self, r_group):
         select_subs_dialog = SelectSubsDialog(r_group)
         select_subs_dialog.exec_()
-        if select_subs_dialog.substituents:
-            self.r_group_substituents[r_group] = select_subs_dialog.substituents
-            substituents_label = ", ".join(self.r_group_substituents[r_group])
-            row = self.r_group_rows[r_group]
-            item = self.r_groups_layout.itemAtPosition(row, 1)
-            if item:
-                widget = item.widget()
-                self.r_groups_layout.removeWidget(widget)
-                widget.deleteLater()
-            self.r_groups_layout.addWidget(QLabel(substituents_label, wordWrap = True),row,1)
         if select_subs_dialog.new_set_saved:
             self.dict_manager.load_functional_group_sets()
-        if len(self.r_group_substituents) == len(self.r_group_rows):
+        if select_subs_dialog.substituents:
+            self.display_r_group_selections(r_group, select_subs_dialog.substituents)
+
+    def display_r_group_selections(self, r_group, substituents):
+        self.r_group_selections[r_group] = substituents
+        substituents_label = ", ".join(self.r_group_selections[r_group])
+        row = self.r_group_rows[r_group]
+        item = self.r_groups_layout.itemAtPosition(row, 1)
+        if item:
+            widget = item.widget()
+            self.r_groups_layout.removeWidget(widget)
+            widget.deleteLater()
+        self.r_groups_layout.addWidget(QLabel(substituents_label, wordWrap = True),row,1)
+        if len(self.r_group_selections) == len(self.r_group_rows):
             self.generate_csv_button.setEnabled(True)   
 
-    def get_r_group_smiles(self):
-        self.r_group_smiles = {}
-        for r_group in self.smiles_generator.r_groups:
-            if r_group == self.smiles_generator.r_groups[0]:
-                smiles = [self.dict_manager.fg_dict[group][1] if len(self.dict_manager.fg_dict[group]) == 2 else self.dict_manager.fg_dict[group][0] for group in self.r_group_substituents[r_group]]
-            else:
-                smiles = [self.dict_manager.fg_dict[group][0] for group in self.r_group_substituents[r_group]]
-            self.r_group_smiles[r_group] = smiles
+    
 
     def generate_csv_file(self):
-        self.get_r_group_smiles()
-        self.smiles_generator.generate_substitutions_list(self.r_group_smiles)
+        self.smiles_generator.generate_substitutions_list(self.r_group_selections)
         output = self.smiles_generator.generate_output_list()
         filename = "analogue_generator_"+str(datetime.now())[:-7].replace(" ", "_").replace(":", "")+".csv"
         with open(filename, 'w', newline='') as csvfile:
