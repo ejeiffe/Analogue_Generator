@@ -17,9 +17,10 @@ class SmilesGenerator:
         if self._input_smiles.startswith("[R"):
             self._r_groups[0] += "*"
 
-    def get_r_groups(self): #Generates sorted R-group set for display by tab widget
-        r_groups = sorted([r[:-1] if r[-1] == "*" else r for r in self._r_groups])
-        return set(r_groups)
+    def get_r_groups(self): #Generates sorted R-group list for display by tab widget
+        r_groups = list(set([r[:-1] if r[-1] == "*" else r for r in self._r_groups]))
+        r_groups.sort()
+        return r_groups
 
     def get_r_group_smiles(self, r_group_selections):
         r_group_smiles = {}
