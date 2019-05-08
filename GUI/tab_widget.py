@@ -212,16 +212,18 @@ class AGTabs(QWidget):
             r_groups = self.get_r_groups()
         if r_groups:        
             self.r_group_select_buttons = {}
-            self.r_group_rows = {}
-            self.r_group_select_buttons = {}
+            self.r_group_reorder_buttons = {}
             self.r_group_rows = {}
             row = 1
             for r_group in r_groups:
                 self.r_group_rows[r_group] = row
                 self.r_group_select_buttons[r_group] = QPushButton("Select")
+                self.r_group_reorder_buttons[r_group] = QPushButton("Reorder")
+                self.r_group_reorder_buttons[r_group].setEnabled(False)
                 self.r_group_select_buttons[r_group].clicked.connect(lambda _, r=r_group: self.open_selection_dialog(r_group =r))
                 self.r_groups_layout.addWidget(QLabel(r_group),row,0, Qt.AlignTop)
                 self.r_groups_layout.addWidget(self.r_group_select_buttons[r_group],row,2, Qt.AlignTop)
+                self.r_groups_layout.addWidget(self.r_group_reorder_buttons[r_group],row,3, Qt.AlignTop)
                 row += 1
 
     def show_invalid_smiles_message(self):
@@ -251,6 +253,7 @@ class AGTabs(QWidget):
             self.dict_manager.load_functional_group_sets()
         if select_subs_dialog.substituents:
             self.display_r_group_selections(r_group, select_subs_dialog.substituents)
+            self.r_group_reorder_buttons[r_group].setEnabled(True)
 
     def display_r_group_selections(self, r_group, substituents):
         self.r_group_selections[r_group] = substituents

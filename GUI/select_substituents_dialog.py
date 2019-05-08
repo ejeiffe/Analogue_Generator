@@ -17,14 +17,14 @@ class SelectSubsDialog(QDialog):
 
         self.select_subs_table = SelectSubsTable()
 
-        self.save_button = QPushButton("Save Selection")
-        self.save_button.setEnabled(False)
+        self.confirm_button = QPushButton("Confirm Selection")
+        self.confirm_button.setEnabled(False)
         self.save_as_set_button = QPushButton("Save Selection as Set")
         self.save_as_set_button.setEnabled(False)
         self.cancel_button = QPushButton("Cancel")
 
         self.select_subs_button_layout = QHBoxLayout()
-        self.select_subs_button_layout.addWidget(self.save_button)
+        self.select_subs_button_layout.addWidget(self.confirm_button)
         self.select_subs_button_layout.addWidget(self.save_as_set_button)
         self.select_subs_button_layout.addWidget(self.cancel_button)
 
@@ -35,17 +35,16 @@ class SelectSubsDialog(QDialog):
         self.setLayout(self.select_subs_layout)
 
         self.select_subs_table.itemSelectionChanged.connect(self.enable_save_buttons)
-        self.save_button.clicked.connect(self.save_substituents)
+        self.confirm_button.clicked.connect(self.save_substituents)
         self.save_as_set_button.clicked.connect(self.save_selection)
         self.cancel_button.clicked.connect(self.close)
 
     def enable_save_buttons(self):
-        self.save_button.setEnabled(True)
+        self.confirm_button.setEnabled(True)
         self.save_as_set_button.setEnabled(True)
 
     def get_substituents(self):
-        self.substituents = [item.text() for item in self.select_subs_table.selectedItems() if item.text() != ""]
-        self.substituents = list(set(self.substituents))
+        self.substituents = list(dict.fromkeys([item.text() for item in self.select_subs_table.selectedItems()]))
         
     def save_substituents(self):
         self.get_substituents()
@@ -64,7 +63,7 @@ class SelectSubsForNewSetDialog(SelectSubsDialog):
     def __init__(self):
         super().__init__(r_group = "New Set")
 
-        self.save_button.setVisible(False)
+        self.confirm_button.setVisible(False)
 
 class SelectSubsEditSetDialog(SelectSubsDialog):
 
