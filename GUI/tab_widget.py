@@ -8,6 +8,7 @@ from PyQt5.QtCore import *
 from dict_manager import *
 from smiles_generator import *
 from select_substituents_dialog import *
+from reorder_substituents_dialog import *
 from new_group_dialog import *
 from edit_group_dialog import *
 from edit_set_dialog import *
@@ -104,8 +105,6 @@ class AGTabs(QWidget):
         self.manage_sets_set_contains_label = QLabel("<u>Set contains:</u>")
         self.manage_sets_set_contains_label.setFixedWidth(500)
         self.manage_sets_groups_label = QLabel(wordWrap = True)
-        
-        
         
         self.manage_sets_label_box = QGroupBox()
         self.manage_sets_label_layout = QVBoxLayout()
@@ -219,8 +218,9 @@ class AGTabs(QWidget):
                 self.r_group_rows[r_group] = row
                 self.r_group_select_buttons[r_group] = QPushButton("Select")
                 self.r_group_reorder_buttons[r_group] = QPushButton("Reorder")
-                self.r_group_reorder_buttons[r_group].setEnabled(False)
+                self.r_group_reorder_buttons[r_group].setEnabled(False)                
                 self.r_group_select_buttons[r_group].clicked.connect(lambda _, r=r_group: self.open_selection_dialog(r_group =r))
+                self.r_group_reorder_buttons[r_group].clicked.connect(lambda _, r=r_group: self.open_reorder_subs_dialog(r_group =r))
                 self.r_groups_layout.addWidget(QLabel(r_group),row,0, Qt.AlignTop)
                 self.r_groups_layout.addWidget(self.r_group_select_buttons[r_group],row,2, Qt.AlignTop)
                 self.r_groups_layout.addWidget(self.r_group_reorder_buttons[r_group],row,3, Qt.AlignTop)
@@ -252,11 +252,24 @@ class AGTabs(QWidget):
         if select_subs_dialog.new_set_saved:
             self.dict_manager.load_functional_group_sets()
         if select_subs_dialog.substituents:
-            self.display_r_group_selections(r_group, select_subs_dialog.substituents)
+            self.assign_r_group_selections(r_group, select_subs_dialog.substituents)
+            self.display_r_group_selections(r_group)
             self.r_group_reorder_buttons[r_group].setEnabled(True)
 
-    def display_r_group_selections(self, r_group, substituents):
+    def open_reorder_subs_dialog(self, r_group):
+        substituents = self.r_group_selections[r_group]
+        reorder_subs_dialog = ReorderSubsDialog(r_group, substituents)
+        reorder_subs_dialog.exec_()
+        if reorder_subs_dialog.subs_order_changed:
+            self.assign_r_group_selections(r_group, reorder_subs_dialog.substituents)
+            self.display_r_group_selections(r_group)
+
+    def assign_r_group_selections(self, r_group, substituents):
         self.r_group_selections[r_group] = substituents
+        if len(self.r_group_selections) == len(self.r_group_rows):
+            self.generate_csv_button.setEnabled(True)   
+
+    def display_r_group_selections(self, r_group):
         substituents_label = ", ".join(self.r_group_selections[r_group])
         row = self.r_group_rows[r_group]
         item = self.r_groups_layout.itemAtPosition(row, 1)
@@ -265,8 +278,7 @@ class AGTabs(QWidget):
             self.r_groups_layout.removeWidget(widget)
             widget.deleteLater()
         self.r_groups_layout.addWidget(QLabel(substituents_label, wordWrap = True),row,1)
-        if len(self.r_group_selections) == len(self.r_group_rows):
-            self.generate_csv_button.setEnabled(True)   
+        
 
     
 
