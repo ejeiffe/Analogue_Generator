@@ -6,15 +6,15 @@ class SmilesGenerator:
 
     def __init__(self, input_smiles):
         #Ensures that all R groups are followed by a number
-        self._input_smiles = input_smiles.replace('R]', 'R0]') #Ensures that every R-group has an associated number
+        self.input_smiles = input_smiles.replace('R]', 'R0]') #Ensures that every R-group has an associated number
         self._dict_manager = DictManager()
         self.initialise_r_groups()
 
        
     def initialise_r_groups(self):
-        self._r_groups = list((re.findall("(R\d)", self._input_smiles)))
+        self._r_groups = list((re.findall("(R\d)", self.input_smiles)))
         #Marking R-group at start of string to ensure correct SMILES are selected for ring-containing substituents. 
-        if self._input_smiles.startswith("[R"):
+        if self.input_smiles.startswith("[R"):
             self._r_groups[0] += "*"
 
     def get_r_groups(self): #Generates sorted R-group list for display by tab widget
@@ -61,7 +61,7 @@ class SmilesGenerator:
             iterations //= len(r_group_smiles[r])
 
     def prepare_input_split (self):    
-        self._input_split = re.split("(R\d)", self._input_smiles)
+        self._input_split = re.split("(R\d)", self.input_smiles)
         self._input_split = [x for x in self._input_split if "R" not in x]
         #Replacing the [] around R groups in the original SMILES with a character that can be stripped out later
         self._input_split = [x[:-1] + 'Q' if x[-1] in ('[', ']') else x for x in self._input_split]

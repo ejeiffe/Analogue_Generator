@@ -1,6 +1,6 @@
 import csv
-from datetime import datetime
 from collections import OrderedDict
+from datetime import datetime
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -19,6 +19,8 @@ class AGTabs(QWidget):
         super().__init__()
         self.dict_manager = DictManager()
         self.smiles_generator = None
+        self.output = []
+        self.file_contents = []
 
         #Widgets and layouts
         #Tabs
@@ -36,21 +38,36 @@ class AGTabs(QWidget):
         self.enter_smiles_line_edit = QLineEdit()
         self.submit_smiles_button = QPushButton("Submit")
         self.clear_smiles_input_button = QPushButton("Clear")
-        self.generate_csv_button = QPushButton("Generate CSV File")
-        self.generate_csv_button.setEnabled(False)
+        self.add_to_csv_button = QPushButton("Add to File")
+        self.add_to_csv_button.setEnabled(False)
+        self.view_csv_button = QPushButton("View File Contents")
+        self.view_csv_button.setEnabled(False)
+        self.clear_file_button = QPushButton("Clear File")
+        self.clear_file_button.setEnabled(False)
+        self.save_csv_button = QPushButton("Save CSV File")
+        self.save_csv_button.setEnabled(False)
         self.generate_analogues_exit_button = QPushButton("Exit")
 
-        self.r_groups_box = QGroupBox()
         self.r_groups_layout = QGridLayout()
         self.r_groups_layout.setVerticalSpacing(8)
         self.r_groups_layout.addWidget(QLabel("<u>R Group</u>"),0,0)
         self.r_groups_layout.addWidget(QLabel("<u>Substituents</u>"),0,1)
         self.r_groups_layout.addWidget(QLabel(" "), 0, 2)
         self.r_groups_layout.setAlignment(Qt.AlignTop)
-        self.r_groups_box.setLayout(self.r_groups_layout)
+
+        self.r_groups_button_layout = QHBoxLayout()
+        self.r_groups_button_layout.addWidget(self.add_to_csv_button, 0, Qt.AlignLeft)
+        self.r_groups_button_layout.addWidget(self.view_csv_button, 0, Qt.AlignLeft)
+        self.r_groups_button_layout.addWidget(self.clear_file_button, 0, Qt.AlignLeft)
+
+        self.r_groups_box = QGroupBox()
+        self.r_groups_box_layout = QVBoxLayout()
+        self.r_groups_box_layout.addLayout(self.r_groups_layout)
+        self.r_groups_box_layout.addLayout(self.r_groups_button_layout)
+        self.r_groups_box.setLayout(self.r_groups_box_layout)
 
         self.generate_analogues_button_layout = QHBoxLayout()
-        self.generate_analogues_button_layout.addWidget(self.generate_csv_button, 0, Qt.AlignLeft)
+        self.generate_analogues_button_layout.addWidget(self.save_csv_button, 0, Qt.AlignLeft)
         self.generate_analogues_button_layout.addWidget(self.generate_analogues_exit_button, 0, Qt.AlignRight)
         
         self.generate_analogues_top_layout = QHBoxLayout()
@@ -167,7 +184,10 @@ class AGTabs(QWidget):
         #Connections for Generate Analogues Tab
         self.submit_smiles_button.clicked.connect(self.initialise_r_group_layout)
         self.clear_smiles_input_button.clicked.connect(self.clear_smiles_input)
-        self.generate_csv_button.clicked.connect(self.generate_csv_file)
+        self.add_to_csv_button.clicked.connect(self.add_to_csv_file)
+        self.view_csv_button.clicked.connect(self.view_file_contents)
+        self.clear_file_button.clicked.connect(self.clear_file_contents)
+        self.save_csv_button.clicked.connect(self.save_csv_file)
 
         #Connections for Manage Groups Tab
         self.manage_groups_table.clicked.connect(self.enable_manage_groups_buttons)
@@ -235,6 +255,7 @@ class AGTabs(QWidget):
     def clear_smiles_input(self):
         self.enter_smiles_line_edit.setText("")
         self.generate_csv_button.setEnabled(False)
+        self.smiles_generator = None
         row_count = self.r_groups_layout.rowCount()
         if row_count > 1:
             for i in range(1, row_count):
@@ -267,7 +288,7 @@ class AGTabs(QWidget):
     def assign_r_group_selections(self, r_group, substituents):
         self.r_group_selections[r_group] = substituents
         if len(self.r_group_selections) == len(self.r_group_rows):
-            self.generate_csv_button.setEnabled(True)   
+            self.add_to_csv_button.setEnabled(True)   
 
     def display_r_group_selections(self, r_group):
         substituents_label = ", ".join(self.r_group_selections[r_group])
@@ -279,16 +300,44 @@ class AGTabs(QWidget):
             widget.deleteLater()
         self.r_groups_layout.addWidget(QLabel(substituents_label, wordWrap = True),row,1)
         
-
-    
-
-    def generate_csv_file(self):
+    def add_to_csv_file(self):
         self.smiles_generator.generate_substitutions_list(self.r_group_selections)
-        output = self.smiles_generator.generate_output_list()
-        filename = "analogue_generator_"+str(datetime.now())[:-7].replace(" ", "_").replace(":", "")+".csv"
+        self.output += self.smiles_generator.generate_output_list()
+        self.file_contents += [self.smiles_generator.input_smiles] + [r_group+": "+", ".join(substitutents) for r_group,substitutents in self.r_group_selections.items()]
+        self.save_csv_button.setEnabled(True)
+        self.view_csv_button.setEnabled(True)
+        self.clear_file_button.setEnabled(True)
+
+    def view_file_contents(self):
+        contents_str = "\n".join(self.file_contents)
+        file_contents_message = QMessageBox()
+        file_contents_message.setWindowTitle("File contents")
+        file_contents_message.setText(contents_str)
+        file_contents_message.exec_()
+
+    def clear_file_contents(self):
+        self.output = []
+        self.file_contents = []
+        self.save_csv_button.setEnabled(False)
+        self.view_csv_button.setEnabled(False)
+        self.clear_file_button.setEnabled(False)
+        self.show_file_clear_message()
+
+    def show_file_clear_message(self):
+        file_clear_message = QMessageBox()
+        file_clear_message.setWindowTitle(" ")
+        file_clear_message.setText("File contents cleared.")
+        file_clear_message.exec_()
+        
+    def save_csv_file(self):
+        default_filename = "analogue_generator_"+str(datetime.now())[:-7].replace(" ", "_").replace(":", "")+".csv"
+        save_dialog = QFileDialog()
+        save_dialog.setAcceptMode(QFileDialog.AcceptSave)
+        save_dialog.setDefaultSuffix(".csv")
+        filename = save_dialog.getSaveFileName(self, "Save CSV File", default_filename, "(*.csv)")[0]
         with open(filename, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerows(output)
+            writer.writerows(self.output)
         csvfile.close()
         self.show_csv_confirm_message()
 
