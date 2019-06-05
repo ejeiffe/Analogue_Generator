@@ -14,7 +14,7 @@ class NewGroupDialog(QDialog):
 
         self.group_name_label = QLabel("Functional group name: ")
         self.group_name_line_edit = QLineEdit()
-        self.smiles_info_label = QLabel("""Note that two SMILES strings should be entered for groups containing ring structures to ensure correct connectivity.\n 
+        self.smiles_info_label = QLabel("""Some groups (e.g. ring structures) require two alternative SMILES strings to ensure correct connectivity.\n 
 The first SMILES string will be used when the corresponding R group is in the middle or at the end of the input string.\n 
 The second SMILES string will be used when the R group is at the beginning of the input string.""", wordWrap = True)
         self.first_smiles_label = QLabel("SMILES (middle/end of string):")

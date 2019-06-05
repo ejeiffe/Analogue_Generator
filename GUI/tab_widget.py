@@ -254,12 +254,12 @@ class AGTabs(QWidget):
 
     def clear_smiles_input(self):
         self.enter_smiles_line_edit.setText("")
-        self.generate_csv_button.setEnabled(False)
+        self.add_to_csv_button.setEnabled(False)
         self.smiles_generator = None
         row_count = self.r_groups_layout.rowCount()
         if row_count > 1:
             for i in range(1, row_count):
-                for j in range(3):
+                for j in range(4):
                     item = self.r_groups_layout.itemAtPosition(i,j)
                     if item:
                         widget = item.widget()
