@@ -309,10 +309,12 @@ class AGTabs(QWidget):
         self.clear_file_button.setEnabled(True)
 
     def view_file_contents(self):
+        num_structures = str(len(self.output))+" structures\n"
         contents_str = "\n".join(self.file_contents)
         file_contents_message = QMessageBox()
         file_contents_message.setWindowTitle("File contents")
-        file_contents_message.setText(contents_str)
+        file_contents_message.setText(num_structures)
+        file_contents_message.setDetailedText(contents_str)
         file_contents_message.exec_()
 
     def clear_file_contents(self):
